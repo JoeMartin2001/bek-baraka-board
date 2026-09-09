@@ -11,8 +11,14 @@ and loops all day on a monitor.
 ## Ishga tushirish / Running it
 
 1. `index.html` faylini Chrome'da oching (ikki marta bosing).
-2. **F** tugmasini bosing — ekran toʻliq boʻladi. (**F11** ham ishlaydi.)
+2. Oʻng yuqoridagi **Toʻliq ekran** tugmasini bosing. (**F** yoki **F11** ham ishlaydi.)
 3. Tamom. Ekran oʻzi aylanadi.
+
+Tugma sichqoncha qimirlaganda koʻrinadi va 2.5 soniyadan keyin oʻzi yoʻqoladi,
+shuning uchun ekranda ortiqcha narsa turmaydi.
+
+The fullscreen button rides with the cursor: it appears on any mouse movement
+and fades out with the pointer, so nothing sits on the board unattended.
 
 Butun ekran bitta faylda: internet, oʻrnatish yoki server kerak emas.
 Shriftlar va logotip fayl ichida — internet oʻchsa ham ishlayveradi.
@@ -55,6 +61,7 @@ Change `telegram` and the QR code regenerates itself — nothing else to do.
 | `←` | oldingi slayd |
 | `1` `2` `3` `4` | kerakli slaydga oʻtish |
 | `F` | toʻliq ekran |
+| oʻng yuqoridagi tugma | toʻliq ekran / chiqish |
 
 Qoʻlda bosilsa, avtomatik aylanish 15 soniyaga toʻxtaydi, keyin oʻzi davom etadi.
 Sichqoncha 2.5 soniya tegilmasa yoʻqoladi.

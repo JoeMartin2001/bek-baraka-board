@@ -350,10 +350,44 @@ body.idle{ cursor:none; }
                         calc(var(--py) * var(--d,1) * .55rem), 0);
 }
 
+
+/* ===========================================================================
+   Fullscreen control
+   The board is unattended almost all the time, so the button rides with the
+   cursor: it shows itself when the page opens or the mouse moves, then gets
+   out of the way with the pointer.
+   =========================================================================== */
+.fsbtn{
+  position:fixed; top:2.4rem; right:2.4rem; z-index:100;
+  display:flex; align-items:center; gap:1.1rem;
+  padding:1.1rem 1.8rem;
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
+  font-size:1.85rem; line-height:1; color:var(--gold);
+  background:rgba(0,0,0,.6);
+  border:1px solid rgba(232,178,60,.45); border-radius:.6rem;
+  cursor:pointer;
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  transition:opacity .35s ease, background .2s ease, border-color .2s ease, color .2s ease;
+}
+.fsbtn:hover{ background:rgba(232,178,60,.16); border-color:var(--gold); color:var(--gold-hi); }
+.fsbtn:focus-visible{ outline:2px solid var(--gold-hi); outline-offset:3px; }
+.fsbtn .ico{
+  width:2.1rem; height:2.1rem; flex:0 0 auto;
+  fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round;
+}
+body.idle .fsbtn{ opacity:0; pointer-events:none; }
+
+/* swap icon and label when the board is already filling the screen */
+.fsbtn .ico--exit, .fsbtn .t--exit{ display:none; }
+body.is-fs .fsbtn .ico--enter, body.is-fs .fsbtn .t--enter{ display:none; }
+body.is-fs .fsbtn .ico--exit{ display:block; }
+body.is-fs .fsbtn .t--exit{ display:inline; }
+
 /* ===========================================================================
    Anything that moves on its own, stops.
    =========================================================================== */
 @media (prefers-reduced-motion: reduce){
+  .fsbtn{ transition:none; }
   .s-hero.anim .hero__rule,
   .s-hero.anim .hero__side--l,
   .s-hero.anim .hero__side--r,
@@ -506,6 +540,15 @@ body.idle{ cursor:none; }
   </footer>
 
 </div>
+
+<button class="fsbtn" id="fsbtn" type="button">
+  <svg class="ico ico--enter" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6"/></svg>
+  <svg class="ico ico--exit" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M3 9h6V3M21 9h-6V3M3 15h6v6M21 15h-6v6"/></svg>
+  <span class="fsbtn__t t--enter">Toʻliq ekran</span>
+  <span class="fsbtn__t t--exit">Chiqish</span>
+</button>
 <script>
 /* ---------------------------------------------------------------------------
    Minimal QR encoder: byte mode, EC level M, versions 1-10.
@@ -1014,14 +1057,27 @@ var CONFIG = {
   function next()  { nudge(); go(cur + 1, 1); }
   function prev()  { nudge(); go(cur - 1, -1); }
 
+  function toggleFullscreen() {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(function () {});
+  }
+
+  var fsbtn = document.getElementById('fsbtn');
+  fsbtn.addEventListener('click', function (ev) {
+    ev.stopPropagation();        // never let the button also advance the board
+    wake();
+    toggleFullscreen();
+  });
+  addEventListener('fullscreenchange', function () {
+    document.body.classList.toggle('is-fs', !!document.fullscreenElement);
+    wake();
+  });
+
   addEventListener('keydown', function (e) {
     var k = e.key;
     if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); next(); }
     else if (k === 'ArrowLeft' || k === 'PageUp')            { e.preventDefault(); prev(); }
-    else if (k === 'f' || k === 'F') {
-      if (document.fullscreenElement) document.exitFullscreen();
-      else document.documentElement.requestFullscreen().catch(function () {});
-    }
+    else if (k === 'f' || k === 'F') { toggleFullscreen(); }
     else if (k >= '1' && k <= String(N)) { var i = +k - 1; nudge(); go(i, i > cur ? 1 : -1); }
   });
 
