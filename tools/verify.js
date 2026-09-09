@@ -30,8 +30,8 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   console.log('--- sizes (overflow must be 0,0) ---');
   await at(1366,768, BASE+'?slide=2&still=1','size-1366');
   await at(1920,1080,BASE+'?slide=5&still=1','size-1920');
-  await at(3840,2160,BASE+'?slide=6&still=1','size-3840');
-  await at(1600,1200,BASE+'?slide=7&still=1','size-4x3');
+  await at(3840,2160,BASE+'?slide=7&still=1','size-3840');
+  await at(1600,1200,BASE+'?slide=8&still=1','size-4x3');
   await at(2560,1080,BASE+'?slide=1&still=1','size-ultrawide');
 
   console.log('--- reduced motion ---');
@@ -42,7 +42,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
   console.log('--- QR canvases ---');
   await send('Emulation.setDeviceMetricsOverride',{width:1920,height:1080,deviceScaleFactor:1,mobile:false});
-  await send('Page.navigate',{url:BASE+'?slide=7&still=1'}); await sleep(3000);
+  await send('Page.navigate',{url:BASE+'?slide=8&still=1'}); await sleep(3000);
   for(const q of ['qr-baraka','qr-nextnout']){
     const d=await js(`document.getElementById('${q}').toDataURL('image/png')`);
     fs.writeFileSync(`${OUT}/${q}.png`, Buffer.from(d.split(',')[1],'base64'));
@@ -52,18 +52,18 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   console.log('--- unattended loop (sek=2) ---');
   await send('Page.navigate',{url:BASE+'?sek=2'}); await sleep(1200);
   const seen=[];
-  for(let i=0;i<22;i++){ seen.push(await js("document.getElementById('board').dataset.slide")); await sleep(800); }
+  for(let i=0;i<32;i++){ seen.push(await js("document.getElementById('board').dataset.slide")); await sleep(800); }
   console.log('  ', seen.join(' '));
 
   console.log('--- full-speed cycle length ---');
   await send('Page.navigate',{url:BASE}); await sleep(1500);
   const t0=Date.now(); let last='0', laps=0;
-  while(Date.now()-t0 < 80000 && laps<1){
+  while(Date.now()-t0 < 130000 && laps<1){
     const v=await js("document.getElementById('board').dataset.slide");
     if(last!=='0'&&v==='0') laps++;
     last=v; await sleep(250);
   }
-  console.log(`   one full lap: ${((Date.now()-t0)/1000).toFixed(1)}s (7 slides x 9s + cuts)`);
+  console.log(`   one full lap: ${((Date.now()-t0)/1000).toFixed(1)}s (8 slides x 9s + cuts)`);
 
   console.log(problems.length?'PROBLEMS:\n'+problems.join('\n'):'no console errors or exceptions');
   ws.close(); process.exit(0);

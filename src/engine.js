@@ -25,7 +25,8 @@ var CONFIG = {
     telefon:   '',   // masalan: 'assets/products/iphone.png'
     aksessuar: '',
     gaming:    '',
-    ofis:      ''
+    ofis:      '',
+    desktop:   ''
   }
 };
 

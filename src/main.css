@@ -77,11 +77,12 @@ body.idle{ cursor:none; }
 .s-phones::before { left:78%; top:54%; }
 .s-acc::before    { left:75%; top:56%; }
 .s-game::before   { left:74%; top:56%; }
+.s-desktop::before{ left:75%; top:57%; }
 .s-office::before { left:73%; top:55%; }
 .s-contact::before{ left:30%; top:60%; }
 
 /* the Next Nout rooms turn a turquoise sun instead of a gold one */
-.s-game::before, .s-office::before{
+.s-game::before, .s-office::before, .s-desktop::before{
   background:repeating-conic-gradient(from 0deg at 50% 50%,
       rgba(43,179,163,.10) 0deg .34deg, transparent .34deg 3.4deg); }
 /* ===========================================================================
@@ -108,6 +109,7 @@ body.idle{ cursor:none; }
 .s-acc    { background:radial-gradient(50rem 44rem at 75% 58%, rgba(232,178,60,.12), transparent 68%), var(--void); }
 .s-game   { background:radial-gradient(54rem 46rem at 74% 58%, rgba(43,179,163,.17), transparent 66%), var(--graphite); }
 .s-office { background:radial-gradient(54rem 46rem at 72% 56%, rgba(43,179,163,.14), transparent 66%), var(--graphite); }
+.s-desktop{ background:radial-gradient(54rem 46rem at 75% 57%, rgba(43,179,163,.15), transparent 66%), var(--graphite); }
 .s-contact{ background:radial-gradient(56rem 44rem at 30% 60%, rgba(232,178,60,.11), transparent 70%), var(--void); }
 
 /* --- shared type ------------------------------------------------------- */
@@ -224,7 +226,7 @@ body.idle{ cursor:none; }
 /* ===========================================================================
    SLIDES 2 & 3 — headline across the top, words left, one object right
    =========================================================================== */
-.s-nasiya, .s-phones, .s-acc, .s-game, .s-office, .s-contact{
+.s-nasiya, .s-phones, .s-acc, .s-game, .s-office, .s-desktop, .s-contact{
   flex-direction:column; justify-content:flex-start; align-items:flex-start;
   padding:6.6rem 7.5rem 9.5rem;
 }
@@ -245,6 +247,7 @@ body.idle{ cursor:none; }
 .art--acc    svg{ width:30rem; }
 .art--game   svg{ width:38rem; }
 .art--office svg{ width:36rem; }
+.art--desk   svg{ width:37rem; }
 
 /* engraved linework */
 .ln   { fill:none; stroke:var(--gold); stroke-width:2.4; opacity:.95; }
@@ -252,8 +255,8 @@ body.idle{ cursor:none; }
 .ln-t { fill:none; stroke:var(--rishtan); stroke-width:2.4; }
 .sheet{ fill:rgba(246,241,232,.12); }
 
-.s-game .ln,   .s-office .ln  { stroke:var(--rishtan); }
-.s-game .ln-d, .s-office .ln-d{ stroke:rgba(43,179,163,.55); }
+.s-game .ln,   .s-office .ln,   .s-desktop .ln  { stroke:var(--rishtan); }
+.s-game .ln-d, .s-office .ln-d, .s-desktop .ln-d{ stroke:rgba(43,179,163,.55); }
 .fill-dim{ fill:rgba(0,0,0,.62); }
 
 /* the laptop lid swings open as slide 3 arrives */
@@ -270,6 +273,11 @@ body.idle{ cursor:none; }
 /* the all-in-one settles onto its stand */
 .s-office.anim .mono{ animation:monoUp .95s var(--ease-out) .34s both; }
 @keyframes monoUp{ from{ transform:translateY(16px); opacity:0 } to{ transform:none; opacity:1 } }
+
+/* the desktop's monitor wakes up */
+.screen-on{ opacity:0; }
+.s-desktop.anim .screen-on{ animation:screenOn 1.2s ease-out .5s both; }
+@keyframes screenOn{ from{ opacity:0 } to{ opacity:1 } }
 
 /* the gaming machine's underglow comes up last */
 .glow{ fill:none; stroke:var(--rishtan); stroke-width:6; stroke-linecap:round;
@@ -431,8 +439,10 @@ body.is-fs .fsbtn .t--exit{ display:inline; }
   .s-office.anim .wave,
   .s-nasiya.anim .card,
   .s-office.anim .mono,
-  .s-game.anim .glow{ animation:none; }
+  .s-game.anim .glow,
+  .s-desktop.anim .screen-on{ animation:none; }
   .glow{ opacity:.5; }
+  .screen-on{ opacity:1; }
   .wave{ opacity:.7; }
   .seam{ display:none; }
   .sheen{ background:var(--gold); }

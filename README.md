@@ -1,24 +1,32 @@
 # Bizda Baraka × Next Nout — doʻkon ekrani / shop board
 
-Fargʻonadagi telefon va kompyuter doʻkoni uchun 7 ta slaydli ekran.
-Chrome'da ochiladi, monitorda kun boʻyi aylanib turadi. Bir aylanish ~68 soniya.
+Fargʻonadagi telefon va kompyuter doʻkoni uchun 8 ta slaydli ekran.
+Chrome'da ochiladi, monitorda kun boʻyi aylanib turadi. Bir aylanish ~78 soniya.
 
-A seven-slide board for a phone and computer shop in Fergana. Opens in Chrome
-and loops all day on a monitor; one lap is about 68 seconds.
+An eight-slide board for a phone and computer shop in Fergana. Opens in Chrome
+and loops all day on a monitor; one lap is about 78 seconds.
 
-| | Slayd | Nima haqida |
-|---|---|---|
-| 1 | Bosh sahifa | ikkala brend, har birining oʻz shiori bilan |
-| 2 | Nasiya savdo | 1 dona pasport va 50% bosh toʻlov evaziga |
-| 3 | Telefonlar | iPhone va smartfonlar, telefon sotib olish |
-| 4 | Aksessuarlar | gʻilof, quvvat banki, quloqchin, zaryadlagich |
-| 5 | Oʻyin va grafika | oʻyin noutbuklari va kuchli kompyuterlar |
-| 6 | Ofis va oʻqish | noutbuk, monoblok, printer, Wi-Fi modem |
-| 7 | Bogʻlanish | ikkala raqam, ikkita QR, manzil, ish vaqti |
+Ikkala doʻkon navbatma-navbat chiqadi — Bizda Baraka, Next Nout, Bizda Baraka,
+Next Nout. Har brendning oʻz rangi bor, shuning uchun qaysi doʻkon gapirayotgani
+uzoqdan ham koʻrinib turadi.
 
-2–4-slaydlar Bizda Baraka (oltin), 5–6-slaydlar Next Nout (feruza) ranglarida.
-Pastdagi belgilardan gapirayotgan brendi yorqin turadi — mijoz qaysi raqamga
-qoʻngʻiroq qilishni darrov biladi.
+The two shops take turns all the way through, each in its own colour, so which
+shop is speaking is readable from across the room.
+
+| | Slayd | Doʻkon | Nima haqida |
+|---|---|---|---|
+| 1 | Bosh sahifa | ikkalasi | ikkala brend, har birining oʻz shiori bilan |
+| 2 | Nasiya savdo | Bizda Baraka | 1 dona pasport va 50% bosh toʻlov evaziga |
+| 3 | Oʻyin va grafika | Next Nout | oʻyin noutbuklari, kuchli videokarta |
+| 4 | Telefonlar | Bizda Baraka | iPhone va smartfonlar, telefon sotib olish |
+| 5 | Ofis va oʻqish | Next Nout | noutbuk, monoblok, printer, Wi-Fi modem |
+| 6 | Aksessuarlar | Bizda Baraka | gʻilof, quvvat banki, quloqchin, zaryadlagich |
+| 7 | Kompyuterlar | Next Nout | tizim bloki, monitor, sozlab berish |
+| 8 | Bogʻlanish | ikkalasi | ikkala raqam, ikkita QR, manzil, ish vaqti |
+
+Bizda Baraka slaydlari oltin rangda, Next Nout slaydlari feruza rangda. Pastdagi
+belgilardan gapirayotgan brendi yorqin turadi — mijoz qaysi raqamga qoʻngʻiroq
+qilishni darrov biladi.
 
 ---
 
@@ -63,7 +71,7 @@ var CONFIG = {
   ish_vaqti: 'Har kuni  09:00 – 20:00',
   sekund:    9,                          // har bir slayd necha soniya turadi
 
-  rasm: { nasiya:'', telefon:'', aksessuar:'', gaming:'', ofis:'' }
+  rasm: { nasiya:'', telefon:'', aksessuar:'', gaming:'', ofis:'', desktop:'' }
 };
 ```
 
