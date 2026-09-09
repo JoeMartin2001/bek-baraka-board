@@ -35,7 +35,8 @@ the logo are embedded, so it keeps running if the connection drops.
 
 ```js
 var CONFIG = {
-  telefon:   '+998 90 123 45 67',                          // telefon raqam
+  telefon_baraka:   '+998 97 666-68-67',                   // Bizda Baraka raqami
+  telefon_nextnout: '+998 99 990-01-10',                   // Next Nout raqami
   manzil:    ['Fargʻona shahri, Mustaqillik koʻchasi 12',  // manzil, 1-qator
               'Telefon bozori, 3-qator'],                  // manzil, 2-qator
   ish_vaqti: 'Har kuni  09:00 – 20:00',                    // ish vaqti
@@ -45,6 +46,12 @@ var CONFIG = {
 ```
 
 Saqlang va sahifani yangilang (**Ctrl+R** / **Cmd+R**).
+
+Telefon raqamlar toʻgʻri. **Manzil va ish vaqti hali namuna** — ularni oʻzingiznikiga
+almashtiring.
+
+The two phone numbers are real. The **address and opening hours are still
+placeholders** — swap them for the real ones.
 
 `telegram` ni oʻzgartirsangiz, **QR kod ham oʻzi yangilanadi** — qoʻlda hech nima
 qilish shart emas.

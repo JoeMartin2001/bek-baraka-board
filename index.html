@@ -271,16 +271,24 @@ body.idle{ cursor:none; }
 .s-contact{ align-items:center; }
 .contact{ display:flex; align-items:center; justify-content:space-between; width:100%; gap:6rem; }
 .contact__l{ flex:1 1 auto; min-width:0; }
-.s-contact .h{ font-size:7rem; }
-.s-contact .hr{ margin:3rem 0 3rem; }
-.tel{
+.s-contact .h{ font-size:6.4rem; }
+.s-contact .hr{ margin:2.8rem 0 2.8rem; }
+
+/* Two shops, two numbers. The label column is a fixed width so both numbers
+   start on the same axis — the alignment is what tells you they are a pair. */
+.tels{ margin-top:2.4rem; display:flex; flex-direction:column; gap:1.5rem; }
+.tel{ display:flex; align-items:baseline; gap:2.2rem; }
+.tel__who{
+  flex:0 0 14rem; font-size:1.95rem; letter-spacing:.005em;
+  color:rgba(246,241,232,.6);
+}
+.tel__num{
   font-family:Archivo,system-ui,sans-serif;
-  font-weight:800; font-stretch:110%;
-  font-size:5.9rem; line-height:1; letter-spacing:-.018em;
+  font-weight:800; font-stretch:108%;
+  font-size:4.2rem; line-height:1; letter-spacing:-.014em;
   font-variant-numeric:tabular-nums;
   white-space:nowrap;
   color:var(--gold-hi);
-  margin-top:2.6rem;
 }
 .addr p{ font-size:2.5rem; line-height:1.5; color:rgba(246,241,232,.86); }
 .hours{ margin-top:1.6rem; font-size:2.3rem; color:var(--rishtan); font-variant-numeric:tabular-nums; }
@@ -290,7 +298,7 @@ body.idle{ cursor:none; }
   padding:1.7rem; background:#fff; border-radius:.5rem;
   box-shadow:0 0 6rem rgba(232,178,60,.22);
 }
-.qr__frame canvas{ display:block; width:17rem; height:17rem; image-rendering:pixelated; }
+.qr__frame canvas{ display:block; width:15.5rem; height:15.5rem; image-rendering:pixelated; }
 .qr__cap{ margin-top:1.7rem; font-size:2.1rem; color:var(--gold); letter-spacing:.01em; }
 .qr__hint{ margin-top:.4rem; font-size:1.65rem; color:rgba(246,241,232,.5); }
 
@@ -514,7 +522,16 @@ body.is-fs .fsbtn .t--exit{ display:inline; }
       <div class="contact">
         <div class="contact__l">
           <h2 class="h" data-r>Bizni toping</h2>
-          <div class="tel" data-r id="tel">+998 90 123 45 67</div>
+          <div class="tels">
+            <div class="tel" data-r>
+              <span class="tel__who">Bizda Baraka</span>
+              <span class="tel__num" id="tel-baraka"></span>
+            </div>
+            <div class="tel" data-r>
+              <span class="tel__who">Next Nout</span>
+              <span class="tel__num" id="tel-nextnout"></span>
+            </div>
+          </div>
           <div class="hr" data-r></div>
           <div class="addr" data-r id="addr"></div>
           <p class="hours" data-r id="hours"></p>
@@ -849,7 +866,8 @@ if (typeof module !== 'undefined') module.exports = QR;
    Settings — this is the only block you need to edit.
    =========================================================================== */
 var CONFIG = {
-  telefon:   '+998 90 123 45 67',                       // asosiy telefon raqam
+  telefon_baraka:   '+998 97 666-68-67',                // Bizda Baraka telefon raqami
+  telefon_nextnout: '+998 99 990-01-10',                // Next Nout telefon raqami
   manzil:    ['Fargʻona shahri, Mustaqillik koʻchasi 12',  // manzil, 1-qator
               'Telefon bozori, 3-qator'],                  // manzil, 2-qator
   ish_vaqti: 'Har kuni  09:00 – 20:00',                 // ish vaqti
@@ -883,7 +901,8 @@ var CONFIG = {
   // --- fill the board from CONFIG ---------------------------------------
   function tg() { return CONFIG.telegram.replace(/^@/, ''); }
 
-  document.getElementById('tel').textContent = CONFIG.telefon;
+  document.getElementById('tel-baraka').textContent   = CONFIG.telefon_baraka;
+  document.getElementById('tel-nextnout').textContent = CONFIG.telefon_nextnout;
   var addr = document.getElementById('addr');
   CONFIG.manzil.forEach(function (line) {
     var p = document.createElement('p'); p.textContent = line; addr.appendChild(p);
