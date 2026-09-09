@@ -1,0 +1,439 @@
+
+/* ===========================================================================
+   TOKENS
+   Gold is treated as light and line, not paint: hairlines, one luminous seam,
+   engraved artwork. Large areas stay black so the gold reads as metal.
+   The turquoise is Rishtan ceramic — the Fergana valley's own blue-green —
+   and only appears where it means something.
+   =========================================================================== */
+:root{
+  --void:#000000;
+  --gold:#E8B23C;
+  --gold-hi:#FFD874;
+  --gold-deep:#7A5210;
+  --rishtan:#2BB3A3;
+  --graphite:#12161A;
+  --paper:#F6F1E8;
+
+  --ease-seam:cubic-bezier(.52,.02,.16,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+
+  --px:0; --py:0;          /* ambient parallax, unitless, set from the clock */
+}
+@property --sheen{ syntax:'<percentage>'; inherits:true; initial-value:130%; }
+
+/* One unit governs the whole composition: 1rem = 1% of a 16:9 fit.
+   Everything downstream is in rem, so the board scales from 1280x720 to 4K
+   with no media queries and no reflow. */
+html{ font-size:min(1vw, 1.777778vh); overflow:hidden; }
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+
+body{
+  background:#000;
+  color:var(--paper);
+  font-family:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  min-height:100vh;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+body.idle{ cursor:none; }
+
+.board{
+  position:relative;
+  width:100rem; height:56.25rem;
+  overflow:hidden;
+  background:var(--void);
+  will-change:transform;   /* the slow burn-in drift lives here */
+}
+
+/* IBM Plex draws U+02BB (the ʻ of oʻ and gʻ) on a very wide body, which opens
+   a gap mid-word in Uzbek. Pull it back in; Archivo already sets it tightly. */
+.uz{ font-style:normal; margin:0 -.17em; }
+.h .uz, .lead .uz, .card__num .uz, .nn .uz{ margin:0; }
+
+/* ===========================================================================
+   BACKGROUND — quyosh
+   A radial sun figure from ikat geometry, sitting at each slide's light
+   source. It turns continuously and is pushed through every cut, so the
+   ground reads as one thing while the content changes.
+   =========================================================================== */
+.slide::before{
+  content:''; position:absolute; z-index:0; pointer-events:none;
+  width:96rem; height:96rem; left:50%; top:50%; margin:-48rem 0 0 -48rem;
+  background:repeating-conic-gradient(from 0deg at 50% 50%,
+      rgba(232,178,60,.11) 0deg .34deg, transparent .34deg 3.4deg);
+  -webkit-mask-image:radial-gradient(closest-side,transparent 7%,rgba(0,0,0,.6) 15%,rgba(0,0,0,.9) 23%,transparent 40%);
+          mask-image:radial-gradient(closest-side,transparent 7%,rgba(0,0,0,.6) 15%,rgba(0,0,0,.9) 23%,transparent 40%);
+  transform:rotate(var(--spin,0deg)) scale(var(--spin-s,1));
+  will-change:transform;
+}
+.slide > *{ position:relative; z-index:1; }
+
+/* each slide's sun sits where that slide's light comes from */
+.s-hero::before   { left:50%; top:46%; }
+.s-nasiya::before { left:76%; top:56%; }
+.s-phones::before { left:78%; top:54%; }
+.s-acc::before    { left:75%; top:56%; }
+.s-game::before   { left:74%; top:56%; }
+.s-office::before { left:73%; top:55%; }
+.s-contact::before{ left:30%; top:60%; }
+
+/* the Next Nout rooms turn a turquoise sun instead of a gold one */
+.s-game::before, .s-office::before{
+  background:repeating-conic-gradient(from 0deg at 50% 50%,
+      rgba(43,179,163,.10) 0deg .34deg, transparent .34deg 3.4deg); }
+/* ===========================================================================
+   SLIDES
+   =========================================================================== */
+.stage{ position:absolute; inset:0; z-index:10; }
+
+.slide{
+  position:absolute; inset:0;
+  display:flex; align-items:center;
+  padding:0 7.5rem 7rem;
+  opacity:0; visibility:hidden;
+  will-change:transform,filter,clip-path;
+}
+.slide.on{ opacity:1; visibility:visible; }
+.slide.is-out{ z-index:2; }   /* recedes underneath */
+.slide.is-in { z-index:3; }   /* uncovered on top of it */
+
+/* Bizda Baraka's rooms are gold on black; Next Nout's are Rishtan turquoise
+   on graphite. The loop walks from one brand's world into the other's. */
+.s-hero   { background:radial-gradient(58rem 40rem at 50% 44%, rgba(232,178,60,.11), transparent 70%), var(--void); }
+.s-nasiya { background:radial-gradient(56rem 48rem at 74% 56%, rgba(232,178,60,.19), transparent 70%), var(--void); }
+.s-phones { background:radial-gradient(46rem 44rem at 78% 56%, rgba(232,178,60,.13), transparent 68%), var(--void); }
+.s-acc    { background:radial-gradient(50rem 44rem at 75% 58%, rgba(232,178,60,.12), transparent 68%), var(--void); }
+.s-game   { background:radial-gradient(54rem 46rem at 74% 58%, rgba(43,179,163,.17), transparent 66%), var(--graphite); }
+.s-office { background:radial-gradient(54rem 46rem at 72% 56%, rgba(43,179,163,.14), transparent 66%), var(--graphite); }
+.s-contact{ background:radial-gradient(56rem 44rem at 30% 60%, rgba(232,178,60,.11), transparent 70%), var(--void); }
+
+/* --- shared type ------------------------------------------------------- */
+.h{
+  font-family:Archivo,system-ui,sans-serif;
+  font-weight:800; font-stretch:118%;
+  font-size:9.4rem; line-height:.9; letter-spacing:-.024em;
+  color:var(--paper);
+}
+.hr{
+  height:1px; width:34rem; margin:2.4rem 0 3.4rem;
+  background:linear-gradient(90deg,var(--gold),rgba(232,178,60,.06));
+  transform-origin:0 50%;
+}
+.list{ list-style:none; }
+.list li{
+  white-space:nowrap;
+  font-size:2.5rem; line-height:1.56; font-weight:400;
+  color:rgba(246,241,232,.9);
+  padding-left:2.4rem; position:relative;
+}
+.list li::before{
+  content:''; position:absolute; left:0; top:1.05em;
+  width:1.1rem; height:1px; background:var(--gold);
+}
+/* the nasiya offer is the loudest thing on the board after the numbers —
+   it is what opens the client's own advert, and it earns the emphasis */
+.lead{
+  font-family:Archivo,system-ui,sans-serif;
+  font-weight:700; font-stretch:106%;
+  font-size:4.4rem; line-height:1.2; letter-spacing:-.018em;
+  color:var(--gold-hi);
+}
+.spec{
+  margin-top:2.6rem; font-size:1.95rem; letter-spacing:.008em;
+  color:rgba(246,241,232,.5);
+}
+.offer{
+  margin-top:2.8rem;
+  font-size:2.35rem; font-weight:500; letter-spacing:.005em;
+  color:var(--rishtan);
+}
+.meta{ display:flex; margin-top:2.8rem; }
+.meta span{ font-size:2.1rem; white-space:nowrap; color:rgba(246,241,232,.72); }
+.meta span + span{
+  margin-left:2.2rem; padding-left:2.2rem;
+  border-left:1px solid rgba(232,178,60,.34);
+}
+
+/* --- the Baraka marks, tinted through CSS masks ------------------------ */
+.mk{
+  display:block; background:var(--gold);
+  -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+  -webkit-mask-size:100% 100%;   mask-size:100% 100%;
+  -webkit-mask-position:center;  mask-position:center;
+}
+.mk--mark{ -webkit-mask-image:var(--img-mark); mask-image:var(--img-mark); aspect-ratio:915/477; }
+.mk--word{ -webkit-mask-image:var(--img-word); mask-image:var(--img-word); aspect-ratio:900/108; }
+.mk--tag { -webkit-mask-image:var(--img-tag);  mask-image:var(--img-tag);  aspect-ratio:500/55;  }
+
+/* Brushed-gold foil: a specular band travels through the mark on entry and
+   settles just past centre. This is the logo's own material, so it is the
+   one flourish the hero gets. */
+.sheen{
+  background:linear-gradient(102deg,
+    #9C6A1B 0%, var(--gold) 28%, var(--gold-hi) 44%,
+    #FFF6DC 50%, var(--gold-hi) 56%, var(--gold) 72%, #9C6A1B 100%);
+  background-size:250% 100%;
+  background-position:var(--sheen) 50%;
+}
+
+/* ===========================================================================
+   SLIDE 1 — the two brands meet
+   A vertical seam of light draws from the centre out, then both lockups
+   move in toward it. The mark is a handshake; the entrance enacts it.
+   =========================================================================== */
+.s-hero{ flex-direction:column; justify-content:center; padding-bottom:1rem; }
+.hero{ display:flex; align-items:center; justify-content:center; gap:7rem; }
+.hero__side{ display:flex; flex-direction:column; }
+.hero__side--l{ align-items:center; width:31rem; }
+.hero__side--r{ align-items:flex-start; width:31rem; }
+.hero__mark{ width:25.5rem; }
+.hero__word{ width:24rem; margin-top:2.6rem; }
+.hero__tag { width:13rem;  margin-top:1.2rem; }
+.hero__rule{
+  width:1px; height:25rem; transform-origin:50% 50%;
+  background:linear-gradient(180deg,transparent,var(--gold) 22%,var(--gold-hi) 50%,var(--gold) 78%,transparent);
+}
+.nn{
+  font-family:Archivo,system-ui,sans-serif;
+  font-weight:900; font-stretch:125%;
+  font-size:8.2rem; line-height:.86; letter-spacing:-.014em;
+  color:#fff;
+}
+/* each mark keeps its own words, which is what makes the pairing read as
+   two businesses rather than one with a subtitle */
+.hero__motto{
+  margin-top:1.7rem; font-size:1.95rem; line-height:1.35;
+  color:rgba(246,241,232,.58);
+}
+.hero__side--l .hero__motto{ text-align:center; }
+.meta--hero{ margin-top:5.2rem; }
+.meta--hero span{ font-size:2.6rem; color:var(--gold-hi); }
+.meta--hero span + span{ margin-left:2.8rem; padding-left:2.8rem; }
+
+.s-hero.anim .hero__rule{ animation:ruleIn 1.05s var(--ease-seam) .05s both; }
+.s-hero.anim .hero__side--l{ animation:comeL .95s var(--ease-out) .3s both, foil 2.9s cubic-bezier(.4,0,.24,1) .95s both; }
+.s-hero.anim .hero__side--r{ animation:comeR .95s var(--ease-out) .3s both; }
+@keyframes ruleIn{ from{ transform:scaleY(0); opacity:0 } to{ transform:scaleY(1); opacity:1 } }
+@keyframes comeL { from{ transform:translateX(-4.2rem); opacity:0 } to{ transform:none; opacity:1 } }
+@keyframes comeR { from{ transform:translateX( 4.2rem); opacity:0 } to{ transform:none; opacity:1 } }
+@keyframes foil  { from{ --sheen:140% } to{ --sheen:44% } }
+
+/* ===========================================================================
+   SLIDES 2 & 3 — headline across the top, words left, one object right
+   =========================================================================== */
+.s-nasiya, .s-phones, .s-acc, .s-game, .s-office, .s-contact{
+  flex-direction:column; justify-content:flex-start; align-items:flex-start;
+  padding:6.6rem 7.5rem 9.5rem;
+}
+.row{ display:flex; flex:1 1 auto; min-height:0; align-items:center;
+      justify-content:space-between; width:100%; gap:5rem; }
+.col{ flex:1 1 auto; min-width:0; }
+.art{ flex:0 0 auto; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+.art__in{ will-change:transform; }
+.art svg{ display:block; overflow:visible; }
+/* a real product photo drops into the same slot as the drawing */
+.art .rasm{ display:block; width:auto; max-width:40rem; max-height:24rem;
+            object-fit:contain; }
+
+.art--phone  svg{ width:12.8rem; }
+.art--phone  .ln{ stroke-width:4; }
+.art--phone  .ln-d{ stroke-width:3; }
+.art--pass   svg{ width:27rem; }
+.art--acc    svg{ width:30rem; }
+.art--game   svg{ width:38rem; }
+.art--office svg{ width:36rem; }
+
+/* engraved linework */
+.ln   { fill:none; stroke:var(--gold); stroke-width:2.4; opacity:.95; }
+.ln-d { fill:none; stroke:var(--gold-deep); stroke-width:1.9; }
+.ln-t { fill:none; stroke:var(--rishtan); stroke-width:2.4; }
+.sheet{ fill:rgba(246,241,232,.12); }
+
+.s-game .ln,   .s-office .ln  { stroke:var(--rishtan); }
+.s-game .ln-d, .s-office .ln-d{ stroke:rgba(43,179,163,.55); }
+.fill-dim{ fill:rgba(0,0,0,.62); }
+
+/* the laptop lid swings open as slide 3 arrives */
+/* the laptop lid swings open as the gaming slide arrives */
+.lid{ transform-box:fill-box; transform-origin:50% 100%; }
+.s-game.anim .lid{ animation:lidUp 1.25s cubic-bezier(.22,.9,.28,1) .34s both; }
+@keyframes lidUp{ from{ transform:perspective(60rem) rotateX(-88deg) } to{ transform:none } }
+
+/* the ID card slides out of the passport */
+.s-nasiya .card{ }
+.s-nasiya.anim .card{ animation:cardOut 1s var(--ease-out) .45s both; }
+@keyframes cardOut{ from{ transform:translateX(-64px); opacity:0 } to{ transform:none; opacity:1 } }
+
+/* the all-in-one settles onto its stand */
+.s-office.anim .mono{ animation:monoUp .95s var(--ease-out) .34s both; }
+@keyframes monoUp{ from{ transform:translateY(16px); opacity:0 } to{ transform:none; opacity:1 } }
+
+/* the gaming machine's underglow comes up last */
+.glow{ fill:none; stroke:var(--rishtan); stroke-width:6; stroke-linecap:round;
+       opacity:0; filter:blur(2px); }
+.s-game.anim .glow{ animation:glowIn 1.7s ease-out 1s both; }
+@keyframes glowIn{ from{ opacity:0 } 55%{ opacity:.9 } to{ opacity:.5 } }
+
+/* wifi arcs breathe, because that is what a router does */
+.wave{ opacity:0; }
+.s-office.anim .wave{ animation:wave 3.4s ease-in-out 1.15s infinite; }
+.s-office.anim .wave:nth-of-type(2){ animation-delay:1.35s; }
+.s-office.anim .wave:nth-of-type(3){ animation-delay:1.55s; }
+@keyframes wave{ 0%,72%,100%{ opacity:0 } 22%,52%{ opacity:.9 } }
+
+/* ===========================================================================
+   SLIDE 7 — how to reach the shop
+   Two businesses, so two columns split by the same hairline the hero uses.
+   Numbers are set the way the shop's own advert sets them, without the
+   +998, because that is what their customers already recognise.
+   =========================================================================== */
+.s-contact .h{ font-size:7rem; }
+.s-contact .hr{ margin:2rem 0 2.8rem; }
+
+.cards{ display:flex; width:100%; }
+.card{ flex:1 1 0; min-width:0; display:flex; align-items:center; gap:2.2rem; }
+.card + .card{
+  margin-left:4.4rem; padding-left:4.4rem;
+  border-left:1px solid rgba(232,178,60,.3);
+}
+.card__txt{ min-width:0; }
+.card__who{ font-size:2.1rem; color:rgba(246,241,232,.6); }
+.card__num{
+  margin-top:.9rem;
+  font-family:Archivo,system-ui,sans-serif;
+  font-weight:800; font-stretch:108%;
+  font-size:3.5rem; line-height:1; letter-spacing:-.015em;
+  font-variant-numeric:tabular-nums; white-space:nowrap;
+  color:var(--gold-hi);
+}
+.card__at{ margin-top:1.2rem; font-size:2.05rem; color:var(--gold); }
+.card__qr{
+  flex:0 0 auto; padding:1.2rem; background:#fff; border-radius:.5rem;
+  box-shadow:0 0 5rem rgba(232,178,60,.2);
+}
+.card__qr canvas{ display:block; width:9rem; height:9rem; image-rendering:pixelated; }
+
+.foot{
+  display:flex; align-items:flex-start; width:100%;
+  margin-top:2.8rem; padding-top:2.4rem;
+  border-top:1px solid rgba(232,178,60,.22);
+}
+.addr p{ font-size:2.1rem; line-height:1.45; color:rgba(246,241,232,.8); }
+.hours{
+  margin-left:auto; padding-left:3rem;
+  font-size:2.1rem; color:var(--rishtan); font-variant-numeric:tabular-nums;
+}
+
+/* ===========================================================================
+   CHROME — the parts that never move
+   A single hairline across the top is the progress of the whole loop;
+   the two marks sit in the bottom corners as equal partners.
+   =========================================================================== */
+.progress{
+  position:absolute; top:0; left:0; right:0; height:2px; z-index:60;
+  background:rgba(122,82,16,.3);
+}
+.progress i{
+  display:block; height:100%; width:100%;
+  transform-origin:0 50%; transform:scaleX(0);
+  background:linear-gradient(90deg,var(--gold-deep),var(--gold) 60%,var(--gold-hi));
+}
+
+.chrome{
+  position:absolute; left:7.5rem; right:7.5rem; bottom:3.2rem; height:5.2rem;
+  display:flex; align-items:center; justify-content:space-between;
+  z-index:50;
+  transition:opacity .55s ease .15s;
+}
+.chrome::before{
+  content:''; position:absolute; left:0; right:0; top:-2.6rem; height:1px;
+  background:linear-gradient(90deg,rgba(232,178,60,.05),rgba(232,178,60,.38) 22%,rgba(232,178,60,.38) 78%,rgba(232,178,60,.05));
+}
+.board[data-slide="0"] .chrome{ opacity:0; }
+
+.lock{ display:flex; align-items:center; gap:1.6rem; transition:opacity .5s ease .12s; }
+/* dim the brand that is not speaking, so a customer knows which number to call */
+.board[data-brand="nextnout"] .lock--baraka{ opacity:.3; }
+.board[data-brand="baraka"]   .lock--nn    { opacity:.3; }
+.lock .mk--mark{ width:7.4rem; }
+.lock .mk--word{ width:9.6rem; }
+.lock--nn{
+  font-family:Archivo,system-ui,sans-serif;
+  font-weight:900; font-stretch:122%;
+  font-size:2.5rem; letter-spacing:.02em; color:#fff;
+}
+
+/* ===========================================================================
+   THE CUT — a seam of light crosses the board and the slide changes behind it
+   =========================================================================== */
+.seam{
+  position:absolute; top:-4rem; bottom:-4rem; left:0; width:30rem; margin-left:-15rem;
+  z-index:40; opacity:0; pointer-events:none; mix-blend-mode:screen;
+  background:radial-gradient(closest-side at 50% 50%, rgba(255,216,116,.26), rgba(255,216,116,0) 72%);
+}
+.seam::after{
+  content:''; position:absolute; left:50%; top:0; bottom:0; width:2px; margin-left:-1px;
+  background:linear-gradient(180deg,transparent,var(--gold-hi) 10%,#fff 50%,var(--gold-hi) 90%,transparent);
+  box-shadow:0 0 2.6rem rgba(255,216,116,.9), 0 0 7rem rgba(232,178,60,.55);
+}
+
+/* ambient parallax — art layers drift at their own depth off one clock */
+.art__in{
+  transform:translate3d(calc(var(--px) * var(--d,1) * 1rem),
+                        calc(var(--py) * var(--d,1) * .55rem), 0);
+}
+
+
+/* ===========================================================================
+   Fullscreen control
+   The board is unattended almost all the time, so the button rides with the
+   cursor: it shows itself when the page opens or the mouse moves, then gets
+   out of the way with the pointer.
+   =========================================================================== */
+.fsbtn{
+  position:fixed; top:2.4rem; right:2.4rem; z-index:100;
+  display:flex; align-items:center; gap:1.1rem;
+  padding:1.1rem 1.8rem;
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
+  font-size:1.85rem; line-height:1; color:var(--gold);
+  background:rgba(0,0,0,.6);
+  border:1px solid rgba(232,178,60,.45); border-radius:.6rem;
+  cursor:pointer;
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  transition:opacity .35s ease, background .2s ease, border-color .2s ease, color .2s ease;
+}
+.fsbtn:hover{ background:rgba(232,178,60,.16); border-color:var(--gold); color:var(--gold-hi); }
+.fsbtn:focus-visible{ outline:2px solid var(--gold-hi); outline-offset:3px; }
+.fsbtn .ico{
+  width:2.1rem; height:2.1rem; flex:0 0 auto;
+  fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round;
+}
+body.idle .fsbtn{ opacity:0; pointer-events:none; }
+
+/* swap icon and label when the board is already filling the screen */
+.fsbtn .ico--exit, .fsbtn .t--exit{ display:none; }
+body.is-fs .fsbtn .ico--enter, body.is-fs .fsbtn .t--enter{ display:none; }
+body.is-fs .fsbtn .ico--exit{ display:block; }
+body.is-fs .fsbtn .t--exit{ display:inline; }
+
+/* ===========================================================================
+   Anything that moves on its own, stops.
+   =========================================================================== */
+@media (prefers-reduced-motion: reduce){
+  .fsbtn{ transition:none; }
+  .s-hero.anim .hero__rule,
+  .s-hero.anim .hero__side--l,
+  .s-hero.anim .hero__side--r,
+  .s-game.anim .lid,
+  .s-office.anim .wave,
+  .s-nasiya.anim .card,
+  .s-office.anim .mono,
+  .s-game.anim .glow{ animation:none; }
+  .glow{ opacity:.5; }
+  .wave{ opacity:.7; }
+  .seam{ display:none; }
+  .sheen{ background:var(--gold); }
+}

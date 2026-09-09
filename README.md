@@ -1,10 +1,24 @@
 # Bizda Baraka × Next Nout — doʻkon ekrani / shop board
 
-Fargʻonadagi telefon va kompyuter doʻkoni uchun 4 ta slaydli ekran.
-Chrome'da ochiladi, monitorda kun boʻyi aylanib turadi.
+Fargʻonadagi telefon va kompyuter doʻkoni uchun 7 ta slaydli ekran.
+Chrome'da ochiladi, monitorda kun boʻyi aylanib turadi. Bir aylanish ~68 soniya.
 
-A four-slide board for a phone and computer shop in Fergana. Opens in Chrome
-and loops all day on a monitor.
+A seven-slide board for a phone and computer shop in Fergana. Opens in Chrome
+and loops all day on a monitor; one lap is about 68 seconds.
+
+| | Slayd | Nima haqida |
+|---|---|---|
+| 1 | Bosh sahifa | ikkala brend, har birining oʻz shiori bilan |
+| 2 | Nasiya savdo | 1 dona pasport va 50% bosh toʻlov evaziga |
+| 3 | Telefonlar | iPhone va smartfonlar, telefon sotib olish |
+| 4 | Aksessuarlar | gʻilof, quvvat banki, quloqchin, zaryadlagich |
+| 5 | Oʻyin va grafika | oʻyin noutbuklari va kuchli kompyuterlar |
+| 6 | Ofis va oʻqish | noutbuk, monoblok, printer, Wi-Fi modem |
+| 7 | Bogʻlanish | ikkala raqam, ikkita QR, manzil, ish vaqti |
+
+2–4-slaydlar Bizda Baraka (oltin), 5–6-slaydlar Next Nout (feruza) ranglarida.
+Pastdagi belgilardan gapirayotgan brendi yorqin turadi — mijoz qaysi raqamga
+qoʻngʻiroq qilishni darrov biladi.
 
 ---
 
@@ -35,13 +49,21 @@ the logo are embedded, so it keeps running if the connection drops.
 
 ```js
 var CONFIG = {
-  telefon_baraka:   '+998 97 666-68-67',                   // Bizda Baraka raqami
-  telefon_nextnout: '+998 99 990-01-10',                   // Next Nout raqami
-  manzil:    ['Fargʻona shahri, Mustaqillik koʻchasi 12',  // manzil, 1-qator
-              'Telefon bozori, 3-qator'],                  // manzil, 2-qator
-  ish_vaqti: 'Har kuni  09:00 – 20:00',                    // ish vaqti
-  telegram:  'nextnout',                                   // Telegram kanal (@ siz)
-  sekund:    9                                             // slayd necha soniya turadi
+  // Telefon raqamlar. Reklamangizdagidek yozilgan (+998 siz).
+  telefon_baraka:   '97 666 68 67',      // Bizda Baraka   (+998 97 666 68 67)
+  telefon_nextnout: '99 990 01 10',      // Next Nout      (+998 99 990 01 10)
+
+  // Ijtimoiy tarmoqlar (@ belgisisiz). QR kodlar shulardan yasaladi.
+  instagram_baraka:   'bizda_baraka',    // instagram.com/bizda_baraka
+  instagram_nextnout: 'next.nout',       // ekranda koʻrinadigan manzil
+  telegram_nextnout:  'nextnout',        // t.me/nextnout — QR shu yerga olib boradi
+
+  manzil:    ['Fargʻona shahri, Mustaqillik koʻchasi 12',
+              'Telefon bozori, 3-qator'],
+  ish_vaqti: 'Har kuni  09:00 – 20:00',
+  sekund:    9,                          // har bir slayd necha soniya turadi
+
+  rasm: { nasiya:'', telefon:'', aksessuar:'', gaming:'', ofis:'' }
 };
 ```
 
@@ -53,10 +75,28 @@ almashtiring.
 The two phone numbers are real. The **address and opening hours are still
 placeholders** — swap them for the real ones.
 
-`telegram` ni oʻzgartirsangiz, **QR kod ham oʻzi yangilanadi** — qoʻlda hech nima
+Manzillarni oʻzgartirsangiz, **QR kodlar ham oʻzi yangilanadi** — qoʻlda hech nima
 qilish shart emas.
 
-Change `telegram` and the QR code regenerates itself — nothing else to do.
+Change a handle and its QR code regenerates itself — nothing else to do.
+
+### Mahsulot rasmlarini qoʻshish / Adding product photos
+
+Rasmni `assets/products/` papkasiga qoʻying, keyin `rasm` ichida yoʻlini yozing:
+
+```js
+rasm: {
+  telefon: 'assets/products/iphone.png',
+  gaming:  'assets/products/asus-tuf.png'
+}
+```
+
+Fon shaffof (PNG) boʻlsa eng yaxshi. Rasm topilmasa yoki yoʻl notoʻgʻri boʻlsa,
+chizma joyida qoladi — ekran hech qachon boʻsh koʻrinmaydi.
+
+Drop a file into `assets/products/` and point `rasm` at it. Transparent PNG works
+best. If the file is missing or the path is wrong the drawing stays, so the board
+never looks broken.
 
 ---
 
@@ -112,16 +152,19 @@ Windows Startup folder and the board comes up by itself when the PC boots.
 
 | | |
 |---|---|
-| `index.html` | butun ekran — shu bitta fayl |
+| `index.html` | butun ekran — doʻkonda shu bitta fayl ochiladi |
+| `src/` | ekran qismlari: `body.html`, `main.css`, `engine.js`, `qr.js`, `assets.css` |
+| `build.sh` | `src/` dan `index.html` ni yigʻadi: `sh build.sh` |
+| `tools/` | tekshirish skriptlari (Chrome orqali avtomatik sinov) |
 | `assets/baraka-*.png` | logotipdan ajratilgan qismlar (fayl ichiga ham kiritilgan) |
-| `assets/IMAGE *.jpg` | asl rasmlar |
+| `assets/products/` | mahsulot rasmlari (siz qoʻshasiz) |
 
-`assets/` papkasi faqat manba sifatida saqlanadi — `index.html` uni ochish uchun
-talab qilmaydi, hamma narsa fayl ichida.
+Ekranni oʻzgartirish uchun `src/` ichidagi fayllarni tahrirlab, `sh build.sh` ni
+ishga tushiring. Doʻkon uchun esa hech narsa oʻzgarmaydi — `index.html` hamon
+bitta mustaqil fayl.
 
-The `assets/` folder is kept as source only; `index.html` does not need it.
-
----
+Edit the parts in `src/` and run `sh build.sh`. Nothing changes for the shop:
+`index.html` stays one self-contained file with no runtime dependencies.
 
 ## Eslatma / Notes
 
