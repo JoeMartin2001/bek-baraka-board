@@ -224,6 +224,37 @@ bitta mustaqil fayl.
 Edit the parts in `src/` and run `sh build.sh`. Nothing changes for the shop:
 `index.html` stays one self-contained file with no runtime dependencies.
 
+## Harakat va yuklama / Motion and load
+
+Ekrandagi hamma narsa sekin harakatlanadi: yorugʻlik slayd boʻylab suriladi,
+mahsulot aylanadi, roʻyxatdagi chiziqchalar navbat bilan yonadi, matn ohista
+tebranadi. Hech biri protsessorni bandi qilmaydi — bularning barchasi brauzer
+videokartasida ishlaydigan CSS animatsiyalari.
+
+Everything on the board drifts: a light crosses the slide, the product turns,
+the list dashes pulse in sequence, the text breathes. None of it costs the
+processor anything — it is all CSS animation, which the browser runs on the
+graphics card rather than the main thread.
+
+Oʻlchangan natija (asosiy oqimdagi yuklama):
+
+Measured main-thread cost, before and after moving the ambient motion off the
+per-frame path:
+
+| | style recalc | jami / total |
+|---|---|---|
+| 3D siz slayd / slide without 3D | 21.0% → **0.8%** | 24.1% → **2.0%** |
+| toʻliq aylanma / full loop | 11.7% → **1.2%** | 56.7% → **24.0%** |
+
+3D slaydlardagi qolgan yuklama videokartaga tegishli — sinov kompyuterida
+videokarta yoʻq edi, haqiqiy kompyuterda u ancha kam boʻladi.
+
+What remains on 3D slides is GPU work; the test machine had no GPU, so a real
+one will be lower again. The 3D itself renders at 30fps and only while a slide
+with a model is on screen.
+
+---
+
 ## Eslatma / Notes
 
 - Ekran monitorda kuylab turishi uchun rasm juda sekin (7 daqiqada bir marta)

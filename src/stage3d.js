@@ -12,7 +12,7 @@ var Stage3D = (function () {
 
   var renderer, scene, cam, pivot, canvas, env, gl = false;
   var PHOTOS = {};          // slide key -> [{ img, n }], supplied from CONFIG
-  var SWING_Y = .42, SWING_X = .07, BOB = .12, FILL = .88;   // ambient drift, and how much of the slot to fill
+  var SWING_Y = .78, SWING_X = .11, SWING_Z = .05, BOB = .16, FILL = .88;   // ambient drift, and how much of the slot to fill
   var live = null;          // { key, items, idx, dur, obj, born }
   var swap = null;          // { from, to, t0 }
   var last = 0, raf = 0;
@@ -314,12 +314,17 @@ var Stage3D = (function () {
     cam.updateMatrixWorld();
     if (!probeNode) probeNode = new THREE.Object3D();
     var q = probeNode, v = new THREE.Vector3();
-    var poses = [[SWING_Y, SWING_X], [-SWING_Y, -SWING_X], [SWING_Y, -SWING_X], [-SWING_Y, SWING_X]];
+    var poses = [];
+    [SWING_Y, -SWING_Y].forEach(function (ry) {
+      [SWING_X, -SWING_X].forEach(function (rx) {
+        [SWING_Z, -SWING_Z].forEach(function (rz) { poses.push([ry, rx, rz]); });
+      });
+    });
 
     function worst(k) {
       var m = 0;
       for (var pi = 0; pi < poses.length; pi++) {
-        q.rotation.set(poses[pi][1], poses[pi][0], 0);
+        q.rotation.set(poses[pi][1], poses[pi][0], poses[pi][2]);
         q.scale.setScalar(k);
         q.position.set(0, BOB, 0);
         q.updateMatrixWorld(true);
@@ -486,9 +491,10 @@ var Stage3D = (function () {
     }
 
     if (!RM) {
-      pivot.rotation.y = Math.sin(t * .34) * SWING_Y;
-      pivot.rotation.x = Math.sin(t * .21) * SWING_X;
-      pivot.position.y = Math.sin(t * .27) * BOB;
+      pivot.rotation.y = Math.sin(t * .23) * SWING_Y * .72 + Math.sin(t * .097) * SWING_Y * .28;
+      pivot.rotation.x = Math.sin(t * .15) * SWING_X * .7  + Math.sin(t * .064) * SWING_X * .3;
+      pivot.rotation.z = Math.sin(t * .081) * SWING_Z;
+      pivot.position.y = Math.sin(t * .19) * BOB * .7 + Math.sin(t * .053) * BOB * .3;
     }
     renderer.render(scene, cam);
   }

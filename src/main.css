@@ -45,7 +45,8 @@ body.idle{ cursor:none; }
   width:100rem; height:56.25rem;
   overflow:hidden;
   background:var(--void);
-  will-change:transform;   /* the slow burn-in drift lives here */
+  animation:burnDrift 420s linear infinite;
+  will-change:transform;
 }
 
 /* IBM Plex draws U+02BB (the ʻ of oʻ and gʻ) on a very wide body, which opens
@@ -66,9 +67,27 @@ body.idle{ cursor:none; }
       rgba(232,178,60,.11) 0deg .34deg, transparent .34deg 3.4deg);
   -webkit-mask-image:radial-gradient(closest-side,transparent 7%,rgba(0,0,0,.6) 15%,rgba(0,0,0,.9) 23%,transparent 40%);
           mask-image:radial-gradient(closest-side,transparent 7%,rgba(0,0,0,.6) 15%,rgba(0,0,0,.9) 23%,transparent 40%);
-  transform:rotate(var(--spin,0deg)) scale(var(--spin-s,1));
+  animation:sunSpin 240s linear infinite;
   will-change:transform;
 }
+/* A slow light crossing the slide. One composited layer on a transform, so
+   it costs the main thread nothing and keeps the frame alive between cuts. */
+.slide::after{
+  content:''; position:absolute; z-index:0; pointer-events:none;
+  width:74rem; height:74rem; left:50%; top:50%; margin:-37rem 0 0 -37rem;
+  background:radial-gradient(closest-side, rgba(232,178,60,.11), transparent 72%);
+  animation:lightDrift 34s ease-in-out infinite;
+  will-change:transform;
+}
+.s-game::after, .s-office::after, .s-desktop::after{
+  background:radial-gradient(closest-side, rgba(43,179,163,.11), transparent 72%);
+}
+@keyframes lightDrift{
+  0%,100%{ transform:translate3d(-18rem,-7rem,0) scale(1) }
+  50%    { transform:translate3d( 15rem, 6rem,0) scale(1.2) }
+}
+@keyframes sunSpin{ from{ transform:rotate(0) } to{ transform:rotate(360deg) } }
+
 .slide > *{ position:relative; z-index:1; }
 
 /* An optional product photo behind a slide. It sits above the sun and below
@@ -388,9 +407,10 @@ body.idle{ cursor:none; }
   position:absolute; top:0; left:0; right:0; height:2px; z-index:60;
   background:rgba(122,82,16,.3);
 }
+@keyframes barFill{ from{ transform:scaleX(var(--from,0)) } to{ transform:scaleX(var(--to,0)) } }
 .progress i{
   display:block; height:100%; width:100%;
-  transform-origin:0 50%; transform:scaleX(0);
+  transform-origin:0 50%; transform:scaleX(var(--from,0));
   background:linear-gradient(90deg,var(--gold-deep),var(--gold) 60%,var(--gold-hi));
 }
 
@@ -432,10 +452,41 @@ body.idle{ cursor:none; }
   box-shadow:0 0 2.6rem rgba(255,216,116,.9), 0 0 7rem rgba(232,178,60,.55);
 }
 
-/* ambient parallax — art layers drift at their own depth off one clock */
-.art__in{
-  transform:translate3d(calc(var(--px) * var(--d,1) * 1rem),
-                        calc(var(--py) * var(--d,1) * .55rem), 0);
+/* Ambient drift. Every one of these is a transform on its own layer, on its
+   own period, so nothing lines up and nothing touches style during playback. */
+.art__in{ animation:artDrift 19s ease-in-out infinite; will-change:transform; }
+.s-phones  .art__in{ animation-duration:23s; }
+.s-acc     .art__in{ animation-duration:17s; }
+.s-game    .art__in{ animation-duration:21s; }
+.s-office  .art__in{ animation-duration:25s; }
+.s-desktop .art__in{ animation-duration:18s; }
+@keyframes artDrift{
+  0%,100%{ transform:translate3d(-.7rem,-.45rem,0) }
+  50%    { transform:translate3d( .8rem, .5rem,0) }
+}
+
+.col, .contact__l{ animation:colDrift 27s ease-in-out infinite; }
+@keyframes colDrift{
+  0%,100%{ transform:translate3d(0,-.26rem,0) }
+  50%    { transform:translate3d(0, .26rem,0) }
+}
+
+/* the gold dashes walk down the list, which pulls the eye through it */
+.list li::before{ transform-origin:0 50%; animation:dashPulse 5.4s ease-in-out infinite; }
+.list li:nth-child(2)::before{ animation-delay:.7s; }
+.list li:nth-child(3)::before{ animation-delay:1.4s; }
+@keyframes dashPulse{
+  0%,64%,100%{ opacity:.5; transform:scaleX(1) }
+  24%        { opacity:1;  transform:scaleX(2.1) }
+}
+
+/* burn-in protection: a 1.6px orbit over seven minutes, invisible to a viewer
+   but enough to stop the static frame etching into the panel */
+@keyframes burnDrift{
+  0%,100%{ transform:translate3d( 1.6px,0,0) }
+  25%    { transform:translate3d(0, 1.6px,0) }
+  50%    { transform:translate3d(-1.6px,0,0) }
+  75%    { transform:translate3d(0,-1.6px,0) }
 }
 
 
@@ -475,6 +526,9 @@ body.is-fs .fsbtn .t--exit{ display:inline; }
    Anything that moves on its own, stops.
    =========================================================================== */
 @media (prefers-reduced-motion: reduce){
+  .board, .slide::before, .slide::after, .art__in, .col, .contact__l,
+  .list li::before, .progress i{ animation:none !important; }
+  .slide > .slide__photo{ animation:none !important; }
   .fsbtn{ transition:none; }
   .s-hero.anim .hero__rule,
   .s-hero.anim .hero__side--l,

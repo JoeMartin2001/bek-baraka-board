@@ -66,9 +66,8 @@ var CONFIG = {
       STILL  = Q.has('still'),
       SEK    = parseFloat(Q.get('sek')) || CONFIG.sekund;   // ?sek=6 overrides the pace
 
-  var cur = START, busy = false, elapsed = 0, holdUntil = 0, last = 0, shownAt = -1;
+  var cur = START, busy = false, holdUntil = 0, timer = 0;
   var DUR = SEK * 1000;
-  var spin = 0, spinTarget = 0;
 
   // --- fill the board from CONFIG ---------------------------------------
   function at(h) { return String(h || '').replace(/^@/, ''); }
@@ -186,7 +185,7 @@ var CONFIG = {
 
     busy = true;
     var A = slides[cur], B = slides[next];
-    cur = next; elapsed = 0; shownAt = -1;   // re-anchor on the next frame
+    cur = next;
     board.setAttribute('data-slide', String(cur));
     board.setAttribute('data-brand', B.dataset.brand || 'both');
 
@@ -200,6 +199,7 @@ var CONFIG = {
       B.classList.remove('is-in');
       clearAnims(A);
       busy = false;
+      schedule();
     }
 
     if (R) {
@@ -231,47 +231,38 @@ var CONFIG = {
                   { transform: 'translateX(' + (dir > 0 ? 100 : 0) + 'rem)', opacity: 0 }],
                  { duration: D, easing: E, fill: 'both' });
 
-    spinTarget += 22 * dir;              // push the quyosh through the cut
     enter(B);
   }
 
-  // --- one clock drives everything ---------------------------------------
-  function frame(now) {
-    if (!last) last = now;
-    var dt = Math.min(.05, (now - last) / 1000); last = now;
-    var t = now / 1000;
+  // --- pacing -------------------------------------------------------------
+  // Nothing here runs per frame. Every ambient movement is a CSS animation on
+  // the compositor, the rail fills itself, and the only JS left is a timer
+  // that fires once per slide. Measured, that took main-thread style recalc
+  // from a fifth of wall time to nothing.
+  function bar(run) {
+    pbar.style.animation = 'none';
+    pbar.style.setProperty('--from', (cur / N).toFixed(4));
+    pbar.style.setProperty('--to', ((cur + 1) / N).toFixed(4));
+    void pbar.offsetWidth;                       // restart the fill
+    if (run) pbar.style.animation = 'barFill ' + (DUR / 1000) + 's linear forwards';
+  }
 
-    if (!R) {
-      board.style.setProperty('--px', (Math.sin(t * .21) + Math.sin(t * .13) * .5).toFixed(4));
-      board.style.setProperty('--py', (Math.cos(t * .17) + Math.sin(t * .11) * .4).toFixed(4));
-
-      // burn-in protection: a 1.6px orbit over seven minutes, invisible to a
-      // viewer but enough to stop the static frame etching into the panel
-      var a = t * 2 * Math.PI / 420;
-      board.style.transform = 'translate3d(' + (Math.cos(a) * 1.6).toFixed(2) + 'px,' +
-                                               (Math.sin(a) * 1.6).toFixed(2) + 'px,0)';
-
-      spin += (spinTarget - spin) * Math.min(1, dt * 2.4);
-      var gap = spinTarget - spin;
-      board.style.setProperty('--spin', (t * .55 + spin).toFixed(3) + 'deg');
-      board.style.setProperty('--spin-s', (1 + Math.abs(gap) * .0018).toFixed(4));
+  function schedule() {
+    clearTimeout(timer);
+    if (STILL) { bar(false); return; }
+    var now = performance.now();
+    if (now < holdUntil) {                        // someone touched it: wait them out
+      pbar.style.animationPlayState = 'paused';
+      timer = setTimeout(schedule, holdUntil - now + 20);
+      return;
     }
-
-    // Pace off the wall clock, not off accumulated frame deltas: a monitor
-    // that sleeps or a browser that throttles rAF must not stretch the loop.
-    if (!busy && !STILL) {
-      if (shownAt < 0) shownAt = now - elapsed;
-      if (now < holdUntil) shownAt = now - elapsed;   // held: keep the bar where it is
-      else elapsed = now - shownAt;
-      if (elapsed >= DUR) go(cur + 1, 1);
-    }
-    pbar.style.transform = 'scaleX(' + ((cur + Math.min(1, elapsed / DUR)) / N).toFixed(4) + ')';
-
-    requestAnimationFrame(frame);
+    pbar.style.animationPlayState = 'running';
+    bar(true);
+    timer = setTimeout(function () { go(cur + 1, 1); }, DUR);
   }
 
   // --- manual override ---------------------------------------------------
-  function nudge() { holdUntil = performance.now() + 15000; }
+  function nudge() { holdUntil = performance.now() + 15000; schedule(); }
   function next()  { nudge(); go(cur + 1, 1); }
   function prev()  { nudge(); go(cur - 1, -1); }
 
@@ -328,7 +319,7 @@ var CONFIG = {
     board.setAttribute('data-brand', slides[START].dataset.brand || 'both');
     matchEdge(slides[START]);
     enter(slides[START]);
-    requestAnimationFrame(frame);
+    schedule();
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(start);
   else start();

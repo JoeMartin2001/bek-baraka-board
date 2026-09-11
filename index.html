@@ -72,7 +72,8 @@ body.idle{ cursor:none; }
   width:100rem; height:56.25rem;
   overflow:hidden;
   background:var(--void);
-  will-change:transform;   /* the slow burn-in drift lives here */
+  animation:burnDrift 420s linear infinite;
+  will-change:transform;
 }
 
 /* IBM Plex draws U+02BB (the ʻ of oʻ and gʻ) on a very wide body, which opens
@@ -93,9 +94,27 @@ body.idle{ cursor:none; }
       rgba(232,178,60,.11) 0deg .34deg, transparent .34deg 3.4deg);
   -webkit-mask-image:radial-gradient(closest-side,transparent 7%,rgba(0,0,0,.6) 15%,rgba(0,0,0,.9) 23%,transparent 40%);
           mask-image:radial-gradient(closest-side,transparent 7%,rgba(0,0,0,.6) 15%,rgba(0,0,0,.9) 23%,transparent 40%);
-  transform:rotate(var(--spin,0deg)) scale(var(--spin-s,1));
+  animation:sunSpin 240s linear infinite;
   will-change:transform;
 }
+/* A slow light crossing the slide. One composited layer on a transform, so
+   it costs the main thread nothing and keeps the frame alive between cuts. */
+.slide::after{
+  content:''; position:absolute; z-index:0; pointer-events:none;
+  width:74rem; height:74rem; left:50%; top:50%; margin:-37rem 0 0 -37rem;
+  background:radial-gradient(closest-side, rgba(232,178,60,.11), transparent 72%);
+  animation:lightDrift 34s ease-in-out infinite;
+  will-change:transform;
+}
+.s-game::after, .s-office::after, .s-desktop::after{
+  background:radial-gradient(closest-side, rgba(43,179,163,.11), transparent 72%);
+}
+@keyframes lightDrift{
+  0%,100%{ transform:translate3d(-18rem,-7rem,0) scale(1) }
+  50%    { transform:translate3d( 15rem, 6rem,0) scale(1.2) }
+}
+@keyframes sunSpin{ from{ transform:rotate(0) } to{ transform:rotate(360deg) } }
+
 .slide > *{ position:relative; z-index:1; }
 
 /* An optional product photo behind a slide. It sits above the sun and below
@@ -415,9 +434,10 @@ body.idle{ cursor:none; }
   position:absolute; top:0; left:0; right:0; height:2px; z-index:60;
   background:rgba(122,82,16,.3);
 }
+@keyframes barFill{ from{ transform:scaleX(var(--from,0)) } to{ transform:scaleX(var(--to,0)) } }
 .progress i{
   display:block; height:100%; width:100%;
-  transform-origin:0 50%; transform:scaleX(0);
+  transform-origin:0 50%; transform:scaleX(var(--from,0));
   background:linear-gradient(90deg,var(--gold-deep),var(--gold) 60%,var(--gold-hi));
 }
 
@@ -459,10 +479,41 @@ body.idle{ cursor:none; }
   box-shadow:0 0 2.6rem rgba(255,216,116,.9), 0 0 7rem rgba(232,178,60,.55);
 }
 
-/* ambient parallax — art layers drift at their own depth off one clock */
-.art__in{
-  transform:translate3d(calc(var(--px) * var(--d,1) * 1rem),
-                        calc(var(--py) * var(--d,1) * .55rem), 0);
+/* Ambient drift. Every one of these is a transform on its own layer, on its
+   own period, so nothing lines up and nothing touches style during playback. */
+.art__in{ animation:artDrift 19s ease-in-out infinite; will-change:transform; }
+.s-phones  .art__in{ animation-duration:23s; }
+.s-acc     .art__in{ animation-duration:17s; }
+.s-game    .art__in{ animation-duration:21s; }
+.s-office  .art__in{ animation-duration:25s; }
+.s-desktop .art__in{ animation-duration:18s; }
+@keyframes artDrift{
+  0%,100%{ transform:translate3d(-.7rem,-.45rem,0) }
+  50%    { transform:translate3d( .8rem, .5rem,0) }
+}
+
+.col, .contact__l{ animation:colDrift 27s ease-in-out infinite; }
+@keyframes colDrift{
+  0%,100%{ transform:translate3d(0,-.26rem,0) }
+  50%    { transform:translate3d(0, .26rem,0) }
+}
+
+/* the gold dashes walk down the list, which pulls the eye through it */
+.list li::before{ transform-origin:0 50%; animation:dashPulse 5.4s ease-in-out infinite; }
+.list li:nth-child(2)::before{ animation-delay:.7s; }
+.list li:nth-child(3)::before{ animation-delay:1.4s; }
+@keyframes dashPulse{
+  0%,64%,100%{ opacity:.5; transform:scaleX(1) }
+  24%        { opacity:1;  transform:scaleX(2.1) }
+}
+
+/* burn-in protection: a 1.6px orbit over seven minutes, invisible to a viewer
+   but enough to stop the static frame etching into the panel */
+@keyframes burnDrift{
+  0%,100%{ transform:translate3d( 1.6px,0,0) }
+  25%    { transform:translate3d(0, 1.6px,0) }
+  50%    { transform:translate3d(-1.6px,0,0) }
+  75%    { transform:translate3d(0,-1.6px,0) }
 }
 
 
@@ -502,6 +553,9 @@ body.is-fs .fsbtn .t--exit{ display:inline; }
    Anything that moves on its own, stops.
    =========================================================================== */
 @media (prefers-reduced-motion: reduce){
+  .board, .slide::before, .slide::after, .art__in, .col, .contact__l,
+  .list li::before, .progress i{ animation:none !important; }
+  .slide > .slide__photo{ animation:none !important; }
   .fsbtn{ transition:none; }
   .s-hero.anim .hero__rule,
   .s-hero.anim .hero__side--l,
@@ -5086,7 +5140,7 @@ var Stage3D = (function () {
 
   var renderer, scene, cam, pivot, canvas, env, gl = false;
   var PHOTOS = {};          // slide key -> [{ img, n }], supplied from CONFIG
-  var SWING_Y = .42, SWING_X = .07, BOB = .12, FILL = .88;   // ambient drift, and how much of the slot to fill
+  var SWING_Y = .78, SWING_X = .11, SWING_Z = .05, BOB = .16, FILL = .88;   // ambient drift, and how much of the slot to fill
   var live = null;          // { key, items, idx, dur, obj, born }
   var swap = null;          // { from, to, t0 }
   var last = 0, raf = 0;
@@ -5388,12 +5442,17 @@ var Stage3D = (function () {
     cam.updateMatrixWorld();
     if (!probeNode) probeNode = new THREE.Object3D();
     var q = probeNode, v = new THREE.Vector3();
-    var poses = [[SWING_Y, SWING_X], [-SWING_Y, -SWING_X], [SWING_Y, -SWING_X], [-SWING_Y, SWING_X]];
+    var poses = [];
+    [SWING_Y, -SWING_Y].forEach(function (ry) {
+      [SWING_X, -SWING_X].forEach(function (rx) {
+        [SWING_Z, -SWING_Z].forEach(function (rz) { poses.push([ry, rx, rz]); });
+      });
+    });
 
     function worst(k) {
       var m = 0;
       for (var pi = 0; pi < poses.length; pi++) {
-        q.rotation.set(poses[pi][1], poses[pi][0], 0);
+        q.rotation.set(poses[pi][1], poses[pi][0], poses[pi][2]);
         q.scale.setScalar(k);
         q.position.set(0, BOB, 0);
         q.updateMatrixWorld(true);
@@ -5560,9 +5619,10 @@ var Stage3D = (function () {
     }
 
     if (!RM) {
-      pivot.rotation.y = Math.sin(t * .34) * SWING_Y;
-      pivot.rotation.x = Math.sin(t * .21) * SWING_X;
-      pivot.position.y = Math.sin(t * .27) * BOB;
+      pivot.rotation.y = Math.sin(t * .23) * SWING_Y * .72 + Math.sin(t * .097) * SWING_Y * .28;
+      pivot.rotation.x = Math.sin(t * .15) * SWING_X * .7  + Math.sin(t * .064) * SWING_X * .3;
+      pivot.rotation.z = Math.sin(t * .081) * SWING_Z;
+      pivot.position.y = Math.sin(t * .19) * BOB * .7 + Math.sin(t * .053) * BOB * .3;
     }
     renderer.render(scene, cam);
   }
@@ -5964,9 +6024,8 @@ var CONFIG = {
       STILL  = Q.has('still'),
       SEK    = parseFloat(Q.get('sek')) || CONFIG.sekund;   // ?sek=6 overrides the pace
 
-  var cur = START, busy = false, elapsed = 0, holdUntil = 0, last = 0, shownAt = -1;
+  var cur = START, busy = false, holdUntil = 0, timer = 0;
   var DUR = SEK * 1000;
-  var spin = 0, spinTarget = 0;
 
   // --- fill the board from CONFIG ---------------------------------------
   function at(h) { return String(h || '').replace(/^@/, ''); }
@@ -6084,7 +6143,7 @@ var CONFIG = {
 
     busy = true;
     var A = slides[cur], B = slides[next];
-    cur = next; elapsed = 0; shownAt = -1;   // re-anchor on the next frame
+    cur = next;
     board.setAttribute('data-slide', String(cur));
     board.setAttribute('data-brand', B.dataset.brand || 'both');
 
@@ -6098,6 +6157,7 @@ var CONFIG = {
       B.classList.remove('is-in');
       clearAnims(A);
       busy = false;
+      schedule();
     }
 
     if (R) {
@@ -6129,47 +6189,38 @@ var CONFIG = {
                   { transform: 'translateX(' + (dir > 0 ? 100 : 0) + 'rem)', opacity: 0 }],
                  { duration: D, easing: E, fill: 'both' });
 
-    spinTarget += 22 * dir;              // push the quyosh through the cut
     enter(B);
   }
 
-  // --- one clock drives everything ---------------------------------------
-  function frame(now) {
-    if (!last) last = now;
-    var dt = Math.min(.05, (now - last) / 1000); last = now;
-    var t = now / 1000;
+  // --- pacing -------------------------------------------------------------
+  // Nothing here runs per frame. Every ambient movement is a CSS animation on
+  // the compositor, the rail fills itself, and the only JS left is a timer
+  // that fires once per slide. Measured, that took main-thread style recalc
+  // from a fifth of wall time to nothing.
+  function bar(run) {
+    pbar.style.animation = 'none';
+    pbar.style.setProperty('--from', (cur / N).toFixed(4));
+    pbar.style.setProperty('--to', ((cur + 1) / N).toFixed(4));
+    void pbar.offsetWidth;                       // restart the fill
+    if (run) pbar.style.animation = 'barFill ' + (DUR / 1000) + 's linear forwards';
+  }
 
-    if (!R) {
-      board.style.setProperty('--px', (Math.sin(t * .21) + Math.sin(t * .13) * .5).toFixed(4));
-      board.style.setProperty('--py', (Math.cos(t * .17) + Math.sin(t * .11) * .4).toFixed(4));
-
-      // burn-in protection: a 1.6px orbit over seven minutes, invisible to a
-      // viewer but enough to stop the static frame etching into the panel
-      var a = t * 2 * Math.PI / 420;
-      board.style.transform = 'translate3d(' + (Math.cos(a) * 1.6).toFixed(2) + 'px,' +
-                                               (Math.sin(a) * 1.6).toFixed(2) + 'px,0)';
-
-      spin += (spinTarget - spin) * Math.min(1, dt * 2.4);
-      var gap = spinTarget - spin;
-      board.style.setProperty('--spin', (t * .55 + spin).toFixed(3) + 'deg');
-      board.style.setProperty('--spin-s', (1 + Math.abs(gap) * .0018).toFixed(4));
+  function schedule() {
+    clearTimeout(timer);
+    if (STILL) { bar(false); return; }
+    var now = performance.now();
+    if (now < holdUntil) {                        // someone touched it: wait them out
+      pbar.style.animationPlayState = 'paused';
+      timer = setTimeout(schedule, holdUntil - now + 20);
+      return;
     }
-
-    // Pace off the wall clock, not off accumulated frame deltas: a monitor
-    // that sleeps or a browser that throttles rAF must not stretch the loop.
-    if (!busy && !STILL) {
-      if (shownAt < 0) shownAt = now - elapsed;
-      if (now < holdUntil) shownAt = now - elapsed;   // held: keep the bar where it is
-      else elapsed = now - shownAt;
-      if (elapsed >= DUR) go(cur + 1, 1);
-    }
-    pbar.style.transform = 'scaleX(' + ((cur + Math.min(1, elapsed / DUR)) / N).toFixed(4) + ')';
-
-    requestAnimationFrame(frame);
+    pbar.style.animationPlayState = 'running';
+    bar(true);
+    timer = setTimeout(function () { go(cur + 1, 1); }, DUR);
   }
 
   // --- manual override ---------------------------------------------------
-  function nudge() { holdUntil = performance.now() + 15000; }
+  function nudge() { holdUntil = performance.now() + 15000; schedule(); }
   function next()  { nudge(); go(cur + 1, 1); }
   function prev()  { nudge(); go(cur - 1, -1); }
 
@@ -6226,7 +6277,7 @@ var CONFIG = {
     board.setAttribute('data-brand', slides[START].dataset.brand || 'both');
     matchEdge(slides[START]);
     enter(slides[START]);
-    requestAnimationFrame(frame);
+    schedule();
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(start);
   else start();
