@@ -233,21 +233,42 @@ body.idle{ cursor:none; }
 .row{ display:flex; flex:1 1 auto; min-height:0; align-items:center;
       justify-content:space-between; width:100%; gap:5rem; }
 .col{ flex:1 1 auto; min-width:0; }
-.art{ flex:0 0 auto; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+.art{ flex:0 0 auto; display:flex; flex-direction:column; align-items:center;
+      justify-content:center; gap:1.3rem; pointer-events:none; }
 .art__in{ will-change:transform; }
 .art svg{ display:block; overflow:visible; }
+/* The WebGL canvas lives inside the active slide's art slot, so the seam
+   clips it exactly like everything else. The drawing stays in the layout,
+   invisible, to hold the slot's size open and to be the fallback. */
+.stage3d{ position:absolute; inset:0; width:100%; height:100%; z-index:2; }
+.slide.has3d .art__in > svg,
+.slide.snapped .art__in > svg{ visibility:hidden; }
+.art__snap{ display:none; }
+.slide.snapped .art__snap{
+  display:block; position:absolute; inset:0;
+  width:100%; height:100%; object-fit:contain;
+}
+.art__cap{
+  align-self:stretch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-size:1.85rem; letter-spacing:.01em; min-height:1.3em;
+  color:rgba(246,241,232,.55); text-align:center;
+}
+.s-game .art__cap, .s-office .art__cap, .s-desktop .art__cap{ color:rgba(43,179,163,.75); }
+
 /* a real product photo drops into the same slot as the drawing */
 .art .rasm{ display:block; width:auto; max-width:40rem; max-height:24rem;
             object-fit:contain; }
 
-.art--phone  svg{ width:12.8rem; }
+.art__in{ position:relative; }
+.art--phone  .art__in{ width:17rem;   height:25.5rem; }
+.art--pass   .art__in{ width:27rem;   height:19rem;   }
+.art--acc    .art__in{ width:30rem;   height:17rem;   }
+.art--game   .art__in{ width:38rem;   height:21.5rem; }
+.art--office .art__in{ width:36rem;   height:21.5rem; }
+.art--desk   .art__in{ width:37rem;   height:20.5rem; }
+.art svg{ width:100%; height:100%; }
 .art--phone  .ln{ stroke-width:4; }
 .art--phone  .ln-d{ stroke-width:3; }
-.art--pass   svg{ width:27rem; }
-.art--acc    svg{ width:30rem; }
-.art--game   svg{ width:38rem; }
-.art--office svg{ width:36rem; }
-.art--desk   svg{ width:37rem; }
 
 /* engraved linework */
 .ln   { fill:none; stroke:var(--gold); stroke-width:2.4; opacity:.95; }

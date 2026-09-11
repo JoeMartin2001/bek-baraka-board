@@ -50,6 +50,7 @@ var CONFIG = {
       SEK    = parseFloat(Q.get('sek')) || CONFIG.sekund;   // ?sek=6 overrides the pace
 
   var cur = START, busy = false, elapsed = 0, holdUntil = 0, last = 0, shownAt = -1;
+  var has3d = false;      // set once WebGL has actually started
   var DUR = SEK * 1000;
   var spin = 0, spinTarget = 0;
 
@@ -141,6 +142,7 @@ var CONFIG = {
     el.classList.remove('anim');
     void el.offsetWidth;                 // restart the slide's own keyframes
     el.classList.add('anim');
+    if (has3d) Stage3D.enter(el, DUR);
     el.querySelectorAll('[data-r]').forEach(function (n, i) {
       n.getAnimations().forEach(function (a) { a.cancel(); });
       n.animate(
@@ -167,6 +169,7 @@ var CONFIG = {
     board.setAttribute('data-slide', String(cur));
     board.setAttribute('data-brand', B.dataset.brand || 'both');
 
+    if (has3d) Stage3D.snapshot(A);   // freeze the object into the slide being left
     B.getAnimations().forEach(function (a) { a.cancel(); });
     B.classList.add('on');
     matchEdge(B);
@@ -292,7 +295,10 @@ var CONFIG = {
   addEventListener('mousemove', wake); wake();
 
   // --- start -------------------------------------------------------------
+  addEventListener('resize', function () { if (has3d) Stage3D.fit(); });
+
   function start() {
+    has3d = Stage3D.init();
     if (START !== 0) {
       slides[0].classList.remove('on');
       slides[START].classList.add('on');

@@ -43,10 +43,25 @@ The fullscreen button rides with the cursor: it appears on any mouse movement
 and fades out with the pointer, so nothing sits on the board unattended.
 
 Butun ekran bitta faylda: internet, oʻrnatish yoki server kerak emas.
-Shriftlar va logotip fayl ichida — internet oʻchsa ham ishlayveradi.
+Shriftlar, logotip va 3D kutubxona fayl ichida — internet oʻchsa ham ishlayveradi.
 
-Everything is in one file — no internet, no install, no server. The fonts and
-the logo are embedded, so it keeps running if the connection drops.
+Everything is in one file — no internet, no install, no server. The fonts, the
+logo and the 3D library are embedded, so it keeps running if the connection drops.
+
+### 3D mahsulotlar / The 3D products
+
+Har bir mahsulot slaydida haqiqiy 3D model aylanib turadi: iPhone, AirPods,
+quvvat banki, zaryadlagich, noutbuk, monoblok, tizim bloki, pasport. Bitta
+slaydda bir nechta mahsulot navbatma-navbat oʻtadi — nomi pastida yoziladi.
+
+Modellar fayl ichida yasaladi, tashqi fayl kerak emas. Agar kompyuterda WebGL
+ishlamasa, ekran oʻzi eski chizmalarga qaytadi va hech narsa buzilmaydi.
+
+Each product slide turns a real 3D model — iPhone, AirPods, power bank, charger,
+laptop, all-in-one, tower, passport — and slides with several products cycle
+through them one at a time, captioned. The models are built in code, so there
+are no asset files. If the machine cannot run WebGL the board silently falls
+back to the engraved drawings; nothing breaks.
 
 ---
 

@@ -17,7 +17,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   await send('Emulation.setDeviceMetricsOverride',{width:1920,height:1080,deviceScaleFactor:1,mobile:false});
   for(let i=1;i<=N;i++){
     await send('Page.navigate',{url:`${BASE}?slide=${i}&still=1`});
-    await sleep(3200);
+    await sleep(2800);
     const r=await send('Page.captureScreenshot',{format:'png'});
     fs.writeFileSync(`${OUT}/f${i}.png`,Buffer.from(r.data,'base64'));
     const brand=await js("document.getElementById('board').dataset.brand");
