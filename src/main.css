@@ -71,6 +71,17 @@ body.idle{ cursor:none; }
 }
 .slide > *{ position:relative; z-index:1; }
 
+/* An optional product photo behind a slide. It sits above the sun and below
+   everything else, dimmed and faded out under the text so nothing it contains
+   can compete with the words. */
+.slide > .slide__photo{
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+  background-position:center right; background-size:cover; background-repeat:no-repeat;
+  opacity:.11; filter:saturate(.35) contrast(.8) blur(5px);
+  -webkit-mask-image:linear-gradient(90deg, transparent 30%, rgba(0,0,0,.45) 62%, #000 96%);
+          mask-image:linear-gradient(90deg, transparent 30%, rgba(0,0,0,.45) 62%, #000 96%);
+}
+
 /* each slide's sun sits where that slide's light comes from */
 .s-hero::before   { left:50%; top:46%; }
 .s-nasiya::before { left:76%; top:56%; }
@@ -243,6 +254,18 @@ body.idle{ cursor:none; }
 .stage3d{ position:absolute; inset:0; width:100%; height:100%; z-index:2; }
 .slide.has3d .art__in > svg,
 .slide.snapped .art__in > svg{ visibility:hidden; }
+/* a product photograph occupies the same slot as the model */
+.art__photo{
+  position:absolute; inset:0; z-index:2;
+  width:100%; height:100%; object-fit:contain;
+  opacity:0;
+}
+.art__photo.in{ animation:photoIn .62s cubic-bezier(.16,1,.3,1) both; }
+@keyframes photoIn{
+  from{ opacity:0; transform:translateX(22%) }
+  to  { opacity:1; transform:none }
+}
+
 .art__snap{ display:none; }
 .slide.snapped .art__snap{
   display:block; position:absolute; inset:0;
@@ -462,6 +485,7 @@ body.is-fs .fsbtn .t--exit{ display:inline; }
   .s-office.anim .mono,
   .s-game.anim .glow,
   .s-desktop.anim .screen-on{ animation:none; }
+  .art__photo.in{ animation:none; opacity:1; }
   .glow{ opacity:.5; }
   .screen-on{ opacity:1; }
   .wave{ opacity:.7; }

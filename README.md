@@ -105,21 +105,55 @@ Change a handle and its QR code regenerates itself — nothing else to do.
 
 ### Mahsulot rasmlarini qoʻshish / Adding product photos
 
-Rasmni `assets/products/` papkasiga qoʻying, keyin `rasm` ichida yoʻlini yozing:
+Rasmni `assets/products/` papkasiga qoʻying, keyin `rasm` ichida yozing. Bir
+slaydga bir nechta rasm qoʻysangiz, ular navbatma-navbat oʻtadi:
 
 ```js
 rasm: {
-  telefon: 'assets/products/iphone.png',
-  gaming:  'assets/products/asus-tuf.png'
+  telefon: [
+    { rasm: 'assets/products/iphone-18-pro.png', nom: 'iPhone 18 Pro' },
+    { rasm: 'assets/products/iphone-18.png',     nom: 'iPhone 18' }
+  ]
 }
 ```
 
-Fon shaffof (PNG) boʻlsa eng yaxshi. Rasm topilmasa yoki yoʻl notoʻgʻri boʻlsa,
-chizma joyida qoladi — ekran hech qachon boʻsh koʻrinmaydi.
+Boʻsh qoldirsangiz, oʻsha slaydda 3D model koʻrinadi. Rasm topilmasa ham ekran
+buzilmaydi — 3D model oʻrnida qoladi.
 
-Drop a file into `assets/products/` and point `rasm` at it. Transparent PNG works
-best. If the file is missing or the path is wrong the drawing stays, so the board
-never looks broken.
+Leave a slide empty and it keeps its 3D model. Several photos on one slide cycle
+through them, captioned, exactly like the models do.
+
+**Rasm qanday boʻlishi kerak / What the photo needs to be**
+
+- Fon bir xil — oq, kulrang yoki boshqa tekis rang. Foni shaffof PNG boʻlsa eng yaxshi.
+- Kamida 1200px. Mahsulot toʻliq koʻrinsin, kesilmasin.
+- Qoʻlsiz, bitta mahsulot, toʻgʻridan yoki biroz burchakdan.
+- Yorugʻlik tekis, soya kerak emas — ekran oʻz yorugʻligini qoʻshadi.
+
+Plain flat backdrop, ≥1200px, the whole product uncropped, one item, no hands,
+even light with no baked-in shadow.
+
+**Fonini oʻzi olib tashlash / Removing the background automatically**
+
+```
+python3 tools/cutout.py rasm.jpg assets/products/mahsulot.png
+```
+
+Burchaklardagi rangni fon deb biladi va chetlaridan ichkariga qarab tozalaydi,
+keyin qirralarini yumshatib kesadi.
+
+Reads the backdrop colour from the corners, floods inward from every edge so
+enclosed detail is never punched out, feathers and trims. Works on white, grey
+or any flat studio background.
+
+### Slayd orqasidagi fon rasmi / Background photo
+
+`fon` ichiga rasm yoʻlini yozsangiz, u slayd orqasida juda xira koʻrinadi.
+Yozuvlarga xalaqit bermasligi uchun chap tomoni butunlay oʻchiriladi.
+
+`CONFIG.fon` puts a photo behind a slide, heavily dimmed and blurred and faded
+out under the text. Use something atmospheric — a photo full of legible text or
+detail will fight the words.
 
 ---
 
@@ -181,6 +215,7 @@ Windows Startup folder and the board comes up by itself when the PC boots.
 | `tools/` | tekshirish skriptlari (Chrome orqali avtomatik sinov) |
 | `assets/baraka-*.png` | logotipdan ajratilgan qismlar (fayl ichiga ham kiritilgan) |
 | `assets/products/` | mahsulot rasmlari (siz qoʻshasiz) |
+| `tools/cutout.py` | rasm fonini avtomatik olib tashlaydi |
 
 Ekranni oʻzgartirish uchun `src/` ichidagi fayllarni tahrirlab, `sh build.sh` ni
 ishga tushiring. Doʻkon uchun esa hech narsa oʻzgarmaydi — `index.html` hamon

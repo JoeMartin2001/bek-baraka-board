@@ -19,10 +19,27 @@ var CONFIG = {
   sekund:    9,                          // har bir slayd necha soniya turadi
 
   // Mahsulot rasmlari. Rasmni assets/products/ ichiga qoʻying va shu yerga
-  // yoʻlini yozing — chizma oʻrniga rasm chiqadi. Boʻsh qolsa chizma turadi.
+  // yozing. Bir slaydga bir nechta rasm qoʻysangiz — navbatma-navbat oʻtadi.
+  // Boʻsh qoldirsangiz, oʻsha slaydda 3D model koʻrinadi.
+  //
+  // Product photos. Several per slide cycle one after another; leave a slide
+  // empty and it shows its 3D model instead.
   rasm: {
+    nasiya:    [],
+    telefon:   [
+      { rasm: 'assets/products/iphone-18-pro.png', nom: 'iPhone 18 Pro' }
+    ],
+    aksessuar: [],
+    gaming:    [],
+    ofis:      [],
+    desktop:   []
+  },
+
+  // Slayd orqasidagi fon rasmi. Matnni bosmasligi uchun xiralashtiriladi.
+  // Background photo behind a slide; dimmed so it never fights the words.
+  fon: {
     nasiya:    '',
-    telefon:   '',   // masalan: 'assets/products/iphone.png'
+    telefon:   'assets/products/iphone-hero.jpg',
     aksessuar: '',
     gaming:    '',
     ofis:      '',
@@ -50,7 +67,6 @@ var CONFIG = {
       SEK    = parseFloat(Q.get('sek')) || CONFIG.sekund;   // ?sek=6 overrides the pace
 
   var cur = START, busy = false, elapsed = 0, holdUntil = 0, last = 0, shownAt = -1;
-  var has3d = false;      // set once WebGL has actually started
   var DUR = SEK * 1000;
   var spin = 0, spinTarget = 0;
 
@@ -109,17 +125,22 @@ var CONFIG = {
   drawQR('qr-baraka',   'https://instagram.com/' + at(CONFIG.instagram_baraka));
   drawQR('qr-nextnout', 'https://t.me/' + at(CONFIG.telegram_nextnout));
 
-  // --- real product photos, when the shop supplies them ------------------
-  // A drawing is the fallback: the swap only happens once an image actually
-  // loads, so a wrong path leaves the board looking finished.
-  Object.keys(CONFIG.rasm || {}).forEach(function (key) {
-    var src = CONFIG.rasm[key];
+  Stage3D.setPhotos(CONFIG.rasm);
+
+  // --- background photos, when the shop supplies them --------------------
+  Object.keys(CONFIG.fon || {}).forEach(function (key) {
+    var src = CONFIG.fon[key];
     if (!src) return;
-    var holder = document.querySelector('[data-rasm="' + key + '"]');
-    if (!holder) return;
+    var slot = document.querySelector('[data-3d="' + key + '"]');
+    var slide = slot && slot.closest('[data-slide-el]');
+    if (!slide) return;
     var img = new Image();
-    img.alt = ''; img.className = 'rasm';
-    img.onload = function () { holder.replaceChildren(img); };
+    img.onload = function () {              // only once it has actually loaded
+      var d = document.createElement('div');
+      d.className = 'slide__photo';
+      d.style.backgroundImage = 'url("' + src + '")';
+      slide.insertBefore(d, slide.firstChild);
+    };
     img.src = src;
   });
 
@@ -142,7 +163,7 @@ var CONFIG = {
     el.classList.remove('anim');
     void el.offsetWidth;                 // restart the slide's own keyframes
     el.classList.add('anim');
-    if (has3d) Stage3D.enter(el, DUR);
+    Stage3D.enter(el, DUR);
     el.querySelectorAll('[data-r]').forEach(function (n, i) {
       n.getAnimations().forEach(function (a) { a.cancel(); });
       n.animate(
@@ -169,7 +190,7 @@ var CONFIG = {
     board.setAttribute('data-slide', String(cur));
     board.setAttribute('data-brand', B.dataset.brand || 'both');
 
-    if (has3d) Stage3D.snapshot(A);   // freeze the object into the slide being left
+    Stage3D.snapshot(A);   // freeze a 3D object into the slide being left
     B.getAnimations().forEach(function (a) { a.cancel(); });
     B.classList.add('on');
     matchEdge(B);
@@ -295,10 +316,10 @@ var CONFIG = {
   addEventListener('mousemove', wake); wake();
 
   // --- start -------------------------------------------------------------
-  addEventListener('resize', function () { if (has3d) Stage3D.fit(); });
+  addEventListener('resize', function () { Stage3D.fit(); });
 
   function start() {
-    has3d = Stage3D.init();
+    Stage3D.init();          // false just means no WebGL; photos still work
     if (START !== 0) {
       slides[0].classList.remove('on');
       slides[START].classList.add('on');

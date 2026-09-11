@@ -10,7 +10,8 @@
 var Stage3D = (function () {
   var RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var renderer, scene, cam, pivot, canvas, env, ok = false;
+  var renderer, scene, cam, pivot, canvas, env, gl = false;
+  var PHOTOS = {};          // slide key -> [{ img, n }], supplied from CONFIG
   var live = null;          // { key, items, idx, dur, obj, born }
   var swap = null;          // { from, to, t0 }
   var last = 0, raf = 0;
@@ -268,12 +269,17 @@ var Stage3D = (function () {
     var rim  = new THREE.DirectionalLight(0x8fd0ff, 2.2); rim.position.set(-5, 1.5, -4); scene.add(rim);
     var fill = new THREE.DirectionalLight(0xffffff, .8);  fill.position.set(-1, -2, 5);  scene.add(fill);
 
-    ok = true;
     return true;
   }
 
+  function items(key) {
+    var ph = PHOTOS[key];
+    if (ph && ph.length) return ph;        // real photos win over the models
+    return gl ? CATALOG[key] : null;
+  }
+
   function build(key, idx) {
-    var item = CATALOG[key][idx];
+    var item = live.items[idx];
     var holder = new THREE.Group();
     holder.add(item.b());
     holder.userData.name = item.n;
@@ -300,19 +306,54 @@ var Stage3D = (function () {
     holder.scale.setScalar(k);
   }
 
+  // photographs live in their own <img> per slot; models share the one canvas
+  function showPhoto(item, instant) {
+    var img = live.slot.querySelector('.art__photo');
+    if (!img) {
+      img = document.createElement('img');
+      img.className = 'art__photo'; img.alt = '';
+      live.slot.appendChild(img);
+    }
+    if (canvas && canvas.parentNode === live.slot) canvas.style.display = 'none';
+    img.src = item.img;
+    img.style.display = 'block';
+    if (!instant && !RM) {
+      img.classList.remove('in');
+      void img.offsetWidth;
+      img.classList.add('in');
+    } else { img.classList.add('in'); }
+    caption(item.n);
+  }
+
+  function hidePhoto() {
+    var img = live.slot && live.slot.querySelector('.art__photo');
+    if (img) img.style.display = 'none';
+    if (canvas) canvas.style.display = '';
+  }
+
   function setItem(idx, instant) {
     if (!live) return;
+    live.idx = idx;
+    var item = live.items[idx];
+    if (item.img) {
+      if (gl && live.obj) { pivot.remove(live.obj); live.obj = null; }
+      live.obj = null;
+      swap = null;
+      showPhoto(item, instant);
+      return;
+    }
+    if (!gl) return;
+    hidePhoto();
     var next = build(live.key, idx);
     if (instant || RM) {
       if (live.obj) pivot.remove(live.obj);
-      pivot.add(next); live.obj = next; live.idx = idx;
+      pivot.add(next); live.obj = next;
       caption(next.userData.name);
     } else {
       var vh = 2 * cam.position.z * Math.tan(cam.fov * Math.PI / 360);
       swap = { from: live.obj, to: next, t0: performance.now(), span: vh * cam.aspect * 1.25 };
       pivot.add(next);
       next.position.x = swap.span;
-      live.idx = idx;
     }
   }
 
@@ -323,7 +364,7 @@ var Stage3D = (function () {
   }
 
   function fit() {
-    if (!ok || !live || !live.slot) return;
+    if (!gl || !live || !live.slot) return;
     var r = live.slot.getBoundingClientRect();
     if (!r.width || !r.height) return;
     renderer.setSize(r.width, r.height, false);   // CSS owns the element size
@@ -334,20 +375,23 @@ var Stage3D = (function () {
 
   // --- public -------------------------------------------------------------
   function enter(slideEl, slideMs) {
-    if (!ok) return;
     var slot = slideEl.querySelector('[data-3d]');
     if (!slot) { leave(); return; }
     var key = slot.getAttribute('data-3d');
-    if (!CATALOG[key]) { leave(); return; }
+    var list = items(key);
+    if (!list || !list.length) { leave(); return; }   // nothing to show: the drawing stays
 
-    slot.appendChild(canvas);
+    if (gl) slot.appendChild(canvas);
     slideEl.classList.add('has3d');
-    live = { key: key, slot: slot, items: CATALOG[key], idx: -1,
-             dur: Math.max(1800, (slideMs || 9000) / CATALOG[key].length), born: performance.now() };
-    if (live.obj) { pivot.remove(live.obj); live.obj = null; }
-    while (pivot.children.length) pivot.remove(pivot.children[0]);
+    live = { key: key, slot: slot, items: list, idx: -1,
+             dur: Math.max(1800, (slideMs || 9000) / list.length), born: performance.now() };
+    if (gl) {
+      if (live.obj) { pivot.remove(live.obj); live.obj = null; }
+      while (pivot.children.length) pivot.remove(pivot.children[0]);
+    }
+    live.obj = null;
     swap = null;
-    fit();
+    if (gl) fit();
     setItem(0, true);
     start();
   }
@@ -355,7 +399,7 @@ var Stage3D = (function () {
   // Freeze the current frame into the slide being left, so the seam still has
   // something to wipe away while the live canvas moves on.
   function snapshot(slideEl) {
-    if (!ok || !slideEl) return;
+    if (!gl || !slideEl || !live || !live.obj) return;   // photos keep their own <img>
     var img = slideEl.querySelector('.art__snap');
     if (!img || !canvas.width) return;
     try {
@@ -366,14 +410,19 @@ var Stage3D = (function () {
   }
 
   function leave() {
-    if (!ok) return;
-    if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+    if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
     live = null; swap = null; stop();
   }
 
   function frame(now) {
     raf = requestAnimationFrame(frame);
     if (!live) return;
+
+    // the carousel runs whether the item is a model or a photograph
+    if (!swap && live.items.length > 1 && now - live.born > live.dur * (live.idx + 1)) {
+      setItem((live.idx + 1) % live.items.length);
+    }
+    if (!gl || !live.obj) return;
     if (now - last < 33) return;              // 30fps is plenty for a turntable
     last = now;
 
@@ -391,8 +440,6 @@ var Stage3D = (function () {
       swap.to.scale.setScalar(swap.to.userData.k);
       if (k >= .45 && swap.from) { pivot.remove(swap.from); swap.from = null; caption(swap.to.userData.name); }
       if (k >= 1) { live.obj = swap.to; swap.to.position.x = 0; swap.to.rotation.y = 0; swap = null; }
-    } else if (live.items.length > 1 && now - live.born > live.dur * (live.idx + 1)) {
-      setItem((live.idx + 1) % live.items.length);
     }
 
     if (!RM) {
@@ -403,14 +450,30 @@ var Stage3D = (function () {
     renderer.render(scene, cam);
   }
 
-  function start() { if (ok && !raf) { last = 0; raf = requestAnimationFrame(frame); } }
+  function start() { if (!raf) { last = 0; raf = requestAnimationFrame(frame); } }
   function stop()  { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
 
   return {
-    init: function () { return boot(); },
+    // CONFIG.rasm -> { key: [{ img, n }] }; a slide with photos shows those
+    setPhotos: function (map) {
+      PHOTOS = {};
+      Object.keys(map || {}).forEach(function (k) {
+        var v = map[k];
+        if (!v) return;
+        var arr = (typeof v === 'string') ? [{ rasm: v }] : (v.length ? v : null);
+        if (!arr) return;
+        var out = [];
+        arr.forEach(function (e) {
+          var src = (typeof e === 'string') ? e : e.rasm;
+          if (src) out.push({ img: src, n: (e && e.nom) || '' });
+        });
+        if (out.length) PHOTOS[k] = out;
+      });
+    },
+    init: function () { gl = boot(); return gl; },
     probe: function (fn) { if (live && live.obj) return fn(live.obj, THREE, scene, cam, renderer, canvas); },
     debug: function () {
-      if (!ok || !live) return { ok: ok, live: !!live };
+      if (!live) return { gl: gl, live: false };
       var o = live.obj, b = o ? new THREE.Box3().setFromObject(o) : null, sz = new THREE.Vector3();
       if (b) b.getSize(sz);
       return { key: live.key, idx: live.idx, kids: pivot.children.length,
@@ -420,6 +483,6 @@ var Stage3D = (function () {
                aspect: +cam.aspect.toFixed(3), swapping: !!swap };
     },
     enter: enter, leave: leave, snapshot: snapshot, fit: fit,
-    available: function () { return ok; }
+    available: function () { return gl; }
   };
 })();
