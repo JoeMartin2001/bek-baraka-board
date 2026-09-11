@@ -12,6 +12,7 @@ var Stage3D = (function () {
 
   var renderer, scene, cam, pivot, canvas, env, gl = false;
   var PHOTOS = {};          // slide key -> [{ img, n }], supplied from CONFIG
+  var SWING_Y = .42, SWING_X = .07, BOB = .12, FILL = .88;   // ambient drift, and how much of the slot to fill
   var live = null;          // { key, items, idx, dur, obj, born }
   var swap = null;          // { from, to, t0 }
   var last = 0, raf = 0;
@@ -287,21 +288,59 @@ var Stage3D = (function () {
     return holder;
   }
 
-  // Centre the object on the origin and scale it so it fills the slot, leaving
-  // room for the turntable swing to carry it round without clipping.
+  // Centre the object and scale it to the slot. Estimating from the view
+  // height is not enough: the camera is a perspective one, so the turntable
+  // swing carries corners nearer the lens, where they project larger. Solve it
+  // by projecting the corners at the swing extremes and converging on a fit.
+  var probeNode = null;
   function frame3d(holder) {
     var inner = holder.children[0];
     if (!inner) return;
     inner.position.set(0, 0, 0);
-    inner.scale.setScalar(1);
-    var b = new THREE.Box3().setFromObject(inner);
+    holder.scale.setScalar(1);
+    holder.position.set(0, 0, 0);
+    holder.rotation.set(0, 0, 0);
+    holder.updateMatrixWorld(true);
+
+    var bb = new THREE.Box3().setFromObject(inner);
     var size = new THREE.Vector3(), mid = new THREE.Vector3();
-    b.getSize(size); b.getCenter(mid);
+    bb.getSize(size); bb.getCenter(mid);
     inner.position.set(-mid.x, -mid.y, -mid.z);
-    var vh = 2 * cam.position.z * Math.tan(cam.fov * Math.PI / 360);
-    var vw = vh * cam.aspect;
-    var span = Math.max(size.x, size.z);          // the swing shows depth as width
-    var k = Math.min(vh * .80 / (size.y || 1), vw * .82 / (span || 1));
+
+    var hx = size.x / 2, hy = size.y / 2, hz = size.z / 2, corners = [];
+    for (var i = 0; i < 8; i++)
+      corners.push(new THREE.Vector3(i & 1 ? hx : -hx, i & 2 ? hy : -hy, i & 4 ? hz : -hz));
+
+    cam.updateMatrixWorld();
+    if (!probeNode) probeNode = new THREE.Object3D();
+    var q = probeNode, v = new THREE.Vector3();
+    var poses = [[SWING_Y, SWING_X], [-SWING_Y, -SWING_X], [SWING_Y, -SWING_X], [-SWING_Y, SWING_X]];
+
+    function worst(k) {
+      var m = 0;
+      for (var pi = 0; pi < poses.length; pi++) {
+        q.rotation.set(poses[pi][1], poses[pi][0], 0);
+        q.scale.setScalar(k);
+        q.position.set(0, BOB, 0);
+        q.updateMatrixWorld(true);
+        for (var c = 0; c < corners.length; c++) {
+          v.copy(corners[c]).applyMatrix4(q.matrixWorld).project(cam);
+          if (Math.abs(v.x) > m) m = Math.abs(v.x);
+          if (Math.abs(v.y) > m) m = Math.abs(v.y);
+        }
+      }
+      return m;
+    }
+
+    var k = 1;
+    for (var it = 0; it < 10; it++) {
+      var m = worst(k);
+      if (!isFinite(m) || m <= 1e-6) break;
+      var next = k * (FILL / m);
+      if (!isFinite(next) || next <= 0) break;
+      if (Math.abs(next - k) < 1e-4) { k = next; break; }
+      k = next;
+    }
     holder.userData.k = k;
     holder.scale.setScalar(k);
   }
@@ -350,10 +389,9 @@ var Stage3D = (function () {
       pivot.add(next); live.obj = next;
       caption(next.userData.name);
     } else {
-      var vh = 2 * cam.position.z * Math.tan(cam.fov * Math.PI / 360);
-      swap = { from: live.obj, to: next, t0: performance.now(), span: vh * cam.aspect * 1.25 };
+      swap = { from: live.obj, to: next, t0: performance.now() };
       pivot.add(next);
-      next.position.x = swap.span;
+      next.scale.setScalar(.0001);
     }
   }
 
@@ -427,25 +465,30 @@ var Stage3D = (function () {
     last = now;
 
     var t = now / 1000;
-    if (swap) {                                // 620ms hand-over between products
-      var k = Math.min(1, (now - swap.t0) / 620);
-      var e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-      var span = swap.span;
+    if (swap) {                                // 700ms hand-over, in place
+      var k = Math.min(1, (now - swap.t0) / 700);
+      var ease = function (u) { return u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; };
+      var outp = ease(Math.min(1, k / .6));            // one leaves over the first 60%
+      var inp  = ease(Math.max(0, (k - .4) / .6));     // the next arrives over the last 60%
       if (swap.from) {
-        swap.from.position.x = -e * span;
-        swap.from.rotation.y = -e * .7;
+        swap.from.scale.setScalar(Math.max(.0001, swap.from.userData.k * (1 - outp)));
+        swap.from.rotation.y = outp * 1.15;
       }
-      swap.to.position.x = (1 - e) * span;
-      swap.to.rotation.y = (1 - e) * .7;
-      swap.to.scale.setScalar(swap.to.userData.k);
-      if (k >= .45 && swap.from) { pivot.remove(swap.from); swap.from = null; caption(swap.to.userData.name); }
-      if (k >= 1) { live.obj = swap.to; swap.to.position.x = 0; swap.to.rotation.y = 0; swap = null; }
+      swap.to.scale.setScalar(Math.max(.0001, swap.to.userData.k * inp));
+      swap.to.rotation.y = (1 - inp) * -1.15;
+      if (outp >= 1 && swap.from) { pivot.remove(swap.from); swap.from = null; caption(swap.to.userData.name); }
+      if (k >= 1) {
+        live.obj = swap.to;
+        swap.to.scale.setScalar(swap.to.userData.k);
+        swap.to.rotation.y = 0;
+        swap = null;
+      }
     }
 
     if (!RM) {
-      pivot.rotation.y = Math.sin(t * .34) * .42;
-      pivot.rotation.x = Math.sin(t * .21) * .07;
-      pivot.position.y = Math.sin(t * .27) * .12;
+      pivot.rotation.y = Math.sin(t * .34) * SWING_Y;
+      pivot.rotation.x = Math.sin(t * .21) * SWING_X;
+      pivot.position.y = Math.sin(t * .27) * BOB;
     }
     renderer.render(scene, cam);
   }
