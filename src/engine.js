@@ -162,7 +162,6 @@ var CONFIG = {
     el.classList.remove('anim');
     void el.offsetWidth;                 // restart the slide's own keyframes
     el.classList.add('anim');
-    Stage3D.enter(el, DUR);
     el.querySelectorAll('[data-r]').forEach(function (n, i) {
       n.getAnimations().forEach(function (a) { a.cancel(); });
       n.animate(
@@ -189,7 +188,6 @@ var CONFIG = {
     board.setAttribute('data-slide', String(cur));
     board.setAttribute('data-brand', B.dataset.brand || 'both');
 
-    Stage3D.snapshot(A);   // freeze a 3D object into the slide being left
     B.getAnimations().forEach(function (a) { a.cancel(); });
     B.classList.add('on');
     matchEdge(B);
@@ -198,6 +196,7 @@ var CONFIG = {
       A.classList.remove('on', 'is-out');
       B.classList.remove('is-in');
       clearAnims(A);
+      Stage3D.enter(B, DUR);   // the object arrives once the seam has passed
       busy = false;
       schedule();
     }
@@ -225,6 +224,7 @@ var CONFIG = {
                { transform: 'scale(.94)', filter: 'blur(8px)', opacity: .5 }],
               { duration: D, easing: E, fill: 'both' }).finished.then(done);
 
+    seam.getAnimations().forEach(function (a) { a.cancel(); });
     seam.animate([{ transform: 'translateX(' + (dir > 0 ? 0 : 100) + 'rem)', opacity: 0 },
                   { opacity: 1, offset: .1 },
                   { opacity: 1, offset: .88 },
@@ -310,7 +310,9 @@ var CONFIG = {
   addEventListener('resize', function () { Stage3D.fit(); });
 
   function start() {
-    Stage3D.init();          // false just means no WebGL; photos still work
+    // ?3d=0 leaves the models off, so the WebGL cost can be compared on the
+    // shop's own machine with nothing else changed
+    if (Q.get('3d') !== '0') Stage3D.init();   // false just means no WebGL; photos still work
     if (START !== 0) {
       slides[0].classList.remove('on');
       slides[START].classList.add('on');
@@ -319,6 +321,7 @@ var CONFIG = {
     board.setAttribute('data-brand', slides[START].dataset.brand || 'both');
     matchEdge(slides[START]);
     enter(slides[START]);
+    Stage3D.enter(slides[START], DUR);
     schedule();
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(start);

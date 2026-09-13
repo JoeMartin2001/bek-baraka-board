@@ -184,6 +184,7 @@ Bularni fayl manzilining oxiriga qoʻshing:
 | `?slide=4` | 4-slayddan boshlash |
 | `?still=1` | aylanmasin, bitta slayd tursin |
 | `?sek=6` | har bir slayd 6 soniya |
+| `?3d=0` | 3D modellarsiz (chizmalar bilan) — kompyuter yuklamasini solishtirish uchun |
 
 Masalan, faqat aloqa slaydini koʻrsatish uchun: `index.html?slide=4&still=1`
 

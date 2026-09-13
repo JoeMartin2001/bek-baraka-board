@@ -67,18 +67,16 @@ body.idle{ cursor:none; }
       rgba(232,178,60,.11) 0deg .34deg, transparent .34deg 3.4deg);
   -webkit-mask-image:radial-gradient(closest-side,transparent 7%,rgba(0,0,0,.6) 15%,rgba(0,0,0,.9) 23%,transparent 40%);
           mask-image:radial-gradient(closest-side,transparent 7%,rgba(0,0,0,.6) 15%,rgba(0,0,0,.9) 23%,transparent 40%);
-  animation:sunSpin 240s linear infinite;
-  will-change:transform;
 }
+.slide.on::before{ animation:sunSpin 240s linear infinite; }
 /* A slow light crossing the slide. One composited layer on a transform, so
    it costs the main thread nothing and keeps the frame alive between cuts. */
 .slide.anim::after{
   content:''; position:absolute; z-index:0; pointer-events:none;
   width:74rem; height:74rem; left:50%; top:50%; margin:-37rem 0 0 -37rem;
   background:radial-gradient(closest-side, rgba(232,178,60,.11), transparent 72%);
-  animation:lightSweep 15s cubic-bezier(.3,.5,.4,1) both;
-  will-change:transform;
 }
+.slide.on.anim::after{ animation:lightSweep 15s cubic-bezier(.3,.5,.4,1) both; }
 .s-game.anim::after, .s-office.anim::after, .s-desktop.anim::after{
   background:radial-gradient(closest-side, rgba(43,179,163,.11), transparent 72%);
 }
@@ -125,7 +123,6 @@ body.idle{ cursor:none; }
   display:flex; align-items:center;
   padding:0 7.5rem 7rem;
   opacity:0; visibility:hidden;
-  will-change:transform,filter,clip-path;
 }
 .slide.on{ opacity:1; visibility:visible; }
 .slide.is-out{ z-index:2; }   /* recedes underneath */
@@ -265,14 +262,13 @@ body.idle{ cursor:none; }
 .col{ flex:1 1 auto; min-width:0; }
 .art{ flex:0 0 auto; display:flex; flex-direction:column; align-items:center;
       justify-content:center; gap:1.3rem; pointer-events:none; }
-.art__in{ will-change:transform; }
+.art__in{ }
 .art svg{ display:block; overflow:visible; }
 /* The WebGL canvas lives inside the active slide's art slot, so the seam
    clips it exactly like everything else. The drawing stays in the layout,
    invisible, to hold the slot's size open and to be the fallback. */
 .stage3d{ position:absolute; inset:0; width:100%; height:100%; z-index:2; }
-.slide.has3d .art__in > svg,
-.slide.snapped .art__in > svg{ visibility:hidden; }
+.slide.has3d .art__in > svg{ visibility:hidden; }
 /* a product photograph occupies the same slot as the model */
 .art__photo{
   position:absolute; inset:0; z-index:2;
@@ -286,10 +282,6 @@ body.idle{ cursor:none; }
 }
 
 .art__snap{ display:none; }
-.slide.snapped .art__snap{
-  display:block; position:absolute; inset:0;
-  width:100%; height:100%; object-fit:contain;
-}
 .art__cap{
   align-self:stretch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   font-size:1.85rem; letter-spacing:.01em; min-height:1.3em;
@@ -350,7 +342,7 @@ body.idle{ cursor:none; }
 
 /* wifi arcs breathe, because that is what a router does */
 .wave{ opacity:0; }
-.s-office.anim .wave{ animation:wave 3.4s ease-in-out 1.15s infinite; }
+.s-office.on.anim .wave{ animation:wave 3.4s ease-in-out 1.15s infinite; }
 .s-office.anim .wave:nth-of-type(2){ animation-delay:1.35s; }
 .s-office.anim .wave:nth-of-type(3){ animation-delay:1.55s; }
 @keyframes wave{ 0%,72%,100%{ opacity:0 } 22%,52%{ opacity:.9 } }
@@ -454,38 +446,39 @@ body.idle{ cursor:none; }
 
 /* Ambient drift. Every one of these is a transform on its own layer, on its
    own period, so nothing lines up and nothing touches style during playback. */
-.slide.anim .art__in{ animation:artMove 15s cubic-bezier(.25,.6,.35,1) both; will-change:transform; }
-.s-phones.anim  .art__in{ animation-duration:17s; }
-.s-acc.anim     .art__in{ animation-duration:14s; }
-.s-office.anim  .art__in{ animation-duration:16s; }
+.slide.on.anim .art__in{ animation:artMove 15s cubic-bezier(.25,.6,.35,1) both; }
+.s-phones.on.anim  .art__in{ animation-duration:17s; }
+.s-acc.on.anim     .art__in{ animation-duration:14s; }
+.s-office.on.anim  .art__in{ animation-duration:16s; }
 @keyframes artMove{
   from{ transform:translate3d(-.8rem, .9rem,0) scale(.965) }
   to  { transform:translate3d( .7rem,-.8rem,0) scale(1.05) }
 }
 
-.slide.anim .col,
-.slide.anim .cards{ animation:colMove 16s cubic-bezier(.25,.6,.35,1) both; }
+.slide.on.anim .col,
+.slide.on.anim .cards{ animation:colMove 16s cubic-bezier(.25,.6,.35,1) both; }
 @keyframes colMove{
   from{ transform:translate3d(0, .85rem,0) }
   to  { transform:translate3d(0,-.7rem,0) }
 }
 
 /* the hero eases forward the whole time it is up */
-.s-hero.anim .hero{ animation:heroPush 16s cubic-bezier(.25,.6,.35,1) both; }
+.s-hero.on.anim .hero{ animation:heroPush 16s cubic-bezier(.25,.6,.35,1) both; }
 @keyframes heroPush{
   from{ transform:scale(.982) translate3d(0,.5rem,0) }
   to  { transform:scale(1.028) translate3d(0,-.4rem,0) }
 }
 
 /* a background photograph gets the same slow push a film would give it */
-.slide.anim > .slide__photo{ animation:kenBurns 17s cubic-bezier(.25,.6,.35,1) both; }
+.slide.on.anim > .slide__photo{ animation:kenBurns 17s cubic-bezier(.25,.6,.35,1) both; }
 @keyframes kenBurns{
   from{ transform:scale(1.02) translate3d(.8%,.5%,0) }
   to  { transform:scale(1.13) translate3d(-1.1%,-.7%,0) }
 }
 
 /* the gold dashes walk down the list, which pulls the eye through it */
-.list li::before{ transform-origin:0 50%; animation:dashPulse 5.4s ease-in-out infinite; }
+.list li::before{ transform-origin:0 50%; }
+.slide.on .list li::before{ animation:dashPulse 5.4s ease-in-out infinite; }
 .list li:nth-child(2)::before{ animation-delay:.7s; }
 .list li:nth-child(3)::before{ animation-delay:1.4s; }
 @keyframes dashPulse{
@@ -527,7 +520,7 @@ body.idle{ cursor:none; }
   width:2.1rem; height:2.1rem; flex:0 0 auto;
   fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round;
 }
-body.idle .fsbtn{ opacity:0; pointer-events:none; }
+body.idle .fsbtn{ opacity:0; visibility:hidden; pointer-events:none; }
 
 /* swap icon and label when the board is already filling the screen */
 .fsbtn .ico--exit, .fsbtn .t--exit{ display:none; }

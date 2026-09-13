@@ -12,6 +12,7 @@ var Stage3D = (function () {
 
   var renderer, scene, cam, pivot, canvas, env, gl = false;
   var PHOTOS = {};          // slide key -> [{ img, n }], supplied from CONFIG
+  var BUILT = {};           // key:idx -> holder, built once and reused for the life of the page
   var SWING_Y = .78, SWING_X = .11, SWING_Z = .05, BOB = .16, FILL = .88;   // ambient drift, and how much of the slot to fill
   var live = null;          // { key, items, idx, dur, obj, born }
   var swap = null;          // { from, to, t0 }
@@ -254,7 +255,7 @@ var Stage3D = (function () {
       renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
     } catch (e) { return false; }
     if (!renderer.getContext()) return false;
-    renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1));
+    renderer.setPixelRatio(Math.min(1.25, window.devicePixelRatio || 1));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.25;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -280,11 +281,17 @@ var Stage3D = (function () {
   }
 
   function build(key, idx) {
-    var item = live.items[idx];
-    var holder = new THREE.Group();
-    holder.add(item.b());
-    holder.userData.name = item.n;
-    frame3d(holder);
+    var id = key + ':' + idx, holder = BUILT[id];
+    if (!holder) {
+      var item = live.items[idx];
+      holder = new THREE.Group();
+      holder.add(item.b());
+      holder.userData.name = item.n;
+      BUILT[id] = holder;
+    }
+    holder.position.set(0, 0, 0);
+    holder.rotation.set(0, 0, 0);
+    frame3d(holder);                 // cheap, and the slot may have resized
     return holder;
   }
 
@@ -441,16 +448,7 @@ var Stage3D = (function () {
 
   // Freeze the current frame into the slide being left, so the seam still has
   // something to wipe away while the live canvas moves on.
-  function snapshot(slideEl) {
-    if (!gl || !slideEl || !live || !live.obj) return;   // photos keep their own <img>
-    var img = slideEl.querySelector('.art__snap');
-    if (!img || !canvas.width) return;
-    try {
-      renderer.render(scene, cam);
-      img.src = canvas.toDataURL('image/png');
-      slideEl.classList.add('snapped');
-    } catch (e) { /* tainted or lost context: just let the drawing show */ }
-  }
+  function snapshot() { /* retired: the canvas now rides out with the old slide */ }
 
   function leave() {
     if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
@@ -499,7 +497,10 @@ var Stage3D = (function () {
     renderer.render(scene, cam);
   }
 
-  function start() { if (!raf) { last = 0; raf = requestAnimationFrame(frame); } }
+  function start() { if (!raf && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stop(); else if (live) start();
+  });
   function stop()  { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
 
   return {
@@ -522,10 +523,12 @@ var Stage3D = (function () {
     init: function () { gl = boot(); return gl; },
     probe: function (fn) { if (live && live.obj) return fn(live.obj, THREE, scene, cam, renderer, canvas); },
     debug: function () {
-      if (!live) return { gl: gl, live: false };
+      var mem = gl && renderer ? renderer.info.memory : null;
+      if (!live) return { gl: gl, live: false, geometries: mem && mem.geometries, textures: mem && mem.textures };
       var o = live.obj, b = o ? new THREE.Box3().setFromObject(o) : null, sz = new THREE.Vector3();
       if (b) b.getSize(sz);
       return { key: live.key, idx: live.idx, kids: pivot.children.length,
+               geometries: mem && mem.geometries, textures: mem && mem.textures,
                scale: o ? +o.scale.x.toFixed(4) : null,
                pos: o ? [+o.position.x.toFixed(2), +o.position.y.toFixed(2)] : null,
                worldSize: b ? [+sz.x.toFixed(2), +sz.y.toFixed(2), +sz.z.toFixed(2)] : null,

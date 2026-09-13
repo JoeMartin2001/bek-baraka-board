@@ -94,18 +94,16 @@ body.idle{ cursor:none; }
       rgba(232,178,60,.11) 0deg .34deg, transparent .34deg 3.4deg);
   -webkit-mask-image:radial-gradient(closest-side,transparent 7%,rgba(0,0,0,.6) 15%,rgba(0,0,0,.9) 23%,transparent 40%);
           mask-image:radial-gradient(closest-side,transparent 7%,rgba(0,0,0,.6) 15%,rgba(0,0,0,.9) 23%,transparent 40%);
-  animation:sunSpin 240s linear infinite;
-  will-change:transform;
 }
+.slide.on::before{ animation:sunSpin 240s linear infinite; }
 /* A slow light crossing the slide. One composited layer on a transform, so
    it costs the main thread nothing and keeps the frame alive between cuts. */
 .slide.anim::after{
   content:''; position:absolute; z-index:0; pointer-events:none;
   width:74rem; height:74rem; left:50%; top:50%; margin:-37rem 0 0 -37rem;
   background:radial-gradient(closest-side, rgba(232,178,60,.11), transparent 72%);
-  animation:lightSweep 15s cubic-bezier(.3,.5,.4,1) both;
-  will-change:transform;
 }
+.slide.on.anim::after{ animation:lightSweep 15s cubic-bezier(.3,.5,.4,1) both; }
 .s-game.anim::after, .s-office.anim::after, .s-desktop.anim::after{
   background:radial-gradient(closest-side, rgba(43,179,163,.11), transparent 72%);
 }
@@ -152,7 +150,6 @@ body.idle{ cursor:none; }
   display:flex; align-items:center;
   padding:0 7.5rem 7rem;
   opacity:0; visibility:hidden;
-  will-change:transform,filter,clip-path;
 }
 .slide.on{ opacity:1; visibility:visible; }
 .slide.is-out{ z-index:2; }   /* recedes underneath */
@@ -292,14 +289,13 @@ body.idle{ cursor:none; }
 .col{ flex:1 1 auto; min-width:0; }
 .art{ flex:0 0 auto; display:flex; flex-direction:column; align-items:center;
       justify-content:center; gap:1.3rem; pointer-events:none; }
-.art__in{ will-change:transform; }
+.art__in{ }
 .art svg{ display:block; overflow:visible; }
 /* The WebGL canvas lives inside the active slide's art slot, so the seam
    clips it exactly like everything else. The drawing stays in the layout,
    invisible, to hold the slot's size open and to be the fallback. */
 .stage3d{ position:absolute; inset:0; width:100%; height:100%; z-index:2; }
-.slide.has3d .art__in > svg,
-.slide.snapped .art__in > svg{ visibility:hidden; }
+.slide.has3d .art__in > svg{ visibility:hidden; }
 /* a product photograph occupies the same slot as the model */
 .art__photo{
   position:absolute; inset:0; z-index:2;
@@ -313,10 +309,6 @@ body.idle{ cursor:none; }
 }
 
 .art__snap{ display:none; }
-.slide.snapped .art__snap{
-  display:block; position:absolute; inset:0;
-  width:100%; height:100%; object-fit:contain;
-}
 .art__cap{
   align-self:stretch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   font-size:1.85rem; letter-spacing:.01em; min-height:1.3em;
@@ -377,7 +369,7 @@ body.idle{ cursor:none; }
 
 /* wifi arcs breathe, because that is what a router does */
 .wave{ opacity:0; }
-.s-office.anim .wave{ animation:wave 3.4s ease-in-out 1.15s infinite; }
+.s-office.on.anim .wave{ animation:wave 3.4s ease-in-out 1.15s infinite; }
 .s-office.anim .wave:nth-of-type(2){ animation-delay:1.35s; }
 .s-office.anim .wave:nth-of-type(3){ animation-delay:1.55s; }
 @keyframes wave{ 0%,72%,100%{ opacity:0 } 22%,52%{ opacity:.9 } }
@@ -481,38 +473,39 @@ body.idle{ cursor:none; }
 
 /* Ambient drift. Every one of these is a transform on its own layer, on its
    own period, so nothing lines up and nothing touches style during playback. */
-.slide.anim .art__in{ animation:artMove 15s cubic-bezier(.25,.6,.35,1) both; will-change:transform; }
-.s-phones.anim  .art__in{ animation-duration:17s; }
-.s-acc.anim     .art__in{ animation-duration:14s; }
-.s-office.anim  .art__in{ animation-duration:16s; }
+.slide.on.anim .art__in{ animation:artMove 15s cubic-bezier(.25,.6,.35,1) both; }
+.s-phones.on.anim  .art__in{ animation-duration:17s; }
+.s-acc.on.anim     .art__in{ animation-duration:14s; }
+.s-office.on.anim  .art__in{ animation-duration:16s; }
 @keyframes artMove{
   from{ transform:translate3d(-.8rem, .9rem,0) scale(.965) }
   to  { transform:translate3d( .7rem,-.8rem,0) scale(1.05) }
 }
 
-.slide.anim .col,
-.slide.anim .cards{ animation:colMove 16s cubic-bezier(.25,.6,.35,1) both; }
+.slide.on.anim .col,
+.slide.on.anim .cards{ animation:colMove 16s cubic-bezier(.25,.6,.35,1) both; }
 @keyframes colMove{
   from{ transform:translate3d(0, .85rem,0) }
   to  { transform:translate3d(0,-.7rem,0) }
 }
 
 /* the hero eases forward the whole time it is up */
-.s-hero.anim .hero{ animation:heroPush 16s cubic-bezier(.25,.6,.35,1) both; }
+.s-hero.on.anim .hero{ animation:heroPush 16s cubic-bezier(.25,.6,.35,1) both; }
 @keyframes heroPush{
   from{ transform:scale(.982) translate3d(0,.5rem,0) }
   to  { transform:scale(1.028) translate3d(0,-.4rem,0) }
 }
 
 /* a background photograph gets the same slow push a film would give it */
-.slide.anim > .slide__photo{ animation:kenBurns 17s cubic-bezier(.25,.6,.35,1) both; }
+.slide.on.anim > .slide__photo{ animation:kenBurns 17s cubic-bezier(.25,.6,.35,1) both; }
 @keyframes kenBurns{
   from{ transform:scale(1.02) translate3d(.8%,.5%,0) }
   to  { transform:scale(1.13) translate3d(-1.1%,-.7%,0) }
 }
 
 /* the gold dashes walk down the list, which pulls the eye through it */
-.list li::before{ transform-origin:0 50%; animation:dashPulse 5.4s ease-in-out infinite; }
+.list li::before{ transform-origin:0 50%; }
+.slide.on .list li::before{ animation:dashPulse 5.4s ease-in-out infinite; }
 .list li:nth-child(2)::before{ animation-delay:.7s; }
 .list li:nth-child(3)::before{ animation-delay:1.4s; }
 @keyframes dashPulse{
@@ -554,7 +547,7 @@ body.idle{ cursor:none; }
   width:2.1rem; height:2.1rem; flex:0 0 auto;
   fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round;
 }
-body.idle .fsbtn{ opacity:0; pointer-events:none; }
+body.idle .fsbtn{ opacity:0; visibility:hidden; pointer-events:none; }
 
 /* swap icon and label when the board is already filling the screen */
 .fsbtn .ico--exit, .fsbtn .t--exit{ display:none; }
@@ -5153,6 +5146,7 @@ var Stage3D = (function () {
 
   var renderer, scene, cam, pivot, canvas, env, gl = false;
   var PHOTOS = {};          // slide key -> [{ img, n }], supplied from CONFIG
+  var BUILT = {};           // key:idx -> holder, built once and reused for the life of the page
   var SWING_Y = .78, SWING_X = .11, SWING_Z = .05, BOB = .16, FILL = .88;   // ambient drift, and how much of the slot to fill
   var live = null;          // { key, items, idx, dur, obj, born }
   var swap = null;          // { from, to, t0 }
@@ -5395,7 +5389,7 @@ var Stage3D = (function () {
       renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
     } catch (e) { return false; }
     if (!renderer.getContext()) return false;
-    renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1));
+    renderer.setPixelRatio(Math.min(1.25, window.devicePixelRatio || 1));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.25;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -5421,11 +5415,17 @@ var Stage3D = (function () {
   }
 
   function build(key, idx) {
-    var item = live.items[idx];
-    var holder = new THREE.Group();
-    holder.add(item.b());
-    holder.userData.name = item.n;
-    frame3d(holder);
+    var id = key + ':' + idx, holder = BUILT[id];
+    if (!holder) {
+      var item = live.items[idx];
+      holder = new THREE.Group();
+      holder.add(item.b());
+      holder.userData.name = item.n;
+      BUILT[id] = holder;
+    }
+    holder.position.set(0, 0, 0);
+    holder.rotation.set(0, 0, 0);
+    frame3d(holder);                 // cheap, and the slot may have resized
     return holder;
   }
 
@@ -5582,16 +5582,7 @@ var Stage3D = (function () {
 
   // Freeze the current frame into the slide being left, so the seam still has
   // something to wipe away while the live canvas moves on.
-  function snapshot(slideEl) {
-    if (!gl || !slideEl || !live || !live.obj) return;   // photos keep their own <img>
-    var img = slideEl.querySelector('.art__snap');
-    if (!img || !canvas.width) return;
-    try {
-      renderer.render(scene, cam);
-      img.src = canvas.toDataURL('image/png');
-      slideEl.classList.add('snapped');
-    } catch (e) { /* tainted or lost context: just let the drawing show */ }
-  }
+  function snapshot() { /* retired: the canvas now rides out with the old slide */ }
 
   function leave() {
     if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
@@ -5640,7 +5631,10 @@ var Stage3D = (function () {
     renderer.render(scene, cam);
   }
 
-  function start() { if (!raf) { last = 0; raf = requestAnimationFrame(frame); } }
+  function start() { if (!raf && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stop(); else if (live) start();
+  });
   function stop()  { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
 
   return {
@@ -5663,10 +5657,12 @@ var Stage3D = (function () {
     init: function () { gl = boot(); return gl; },
     probe: function (fn) { if (live && live.obj) return fn(live.obj, THREE, scene, cam, renderer, canvas); },
     debug: function () {
-      if (!live) return { gl: gl, live: false };
+      var mem = gl && renderer ? renderer.info.memory : null;
+      if (!live) return { gl: gl, live: false, geometries: mem && mem.geometries, textures: mem && mem.textures };
       var o = live.obj, b = o ? new THREE.Box3().setFromObject(o) : null, sz = new THREE.Vector3();
       if (b) b.getSize(sz);
       return { key: live.key, idx: live.idx, kids: pivot.children.length,
+               geometries: mem && mem.geometries, textures: mem && mem.textures,
                scale: o ? +o.scale.x.toFixed(4) : null,
                pos: o ? [+o.position.x.toFixed(2), +o.position.y.toFixed(2)] : null,
                worldSize: b ? [+sz.x.toFixed(2), +sz.y.toFixed(2), +sz.z.toFixed(2)] : null,
@@ -6133,7 +6129,6 @@ var CONFIG = {
     el.classList.remove('anim');
     void el.offsetWidth;                 // restart the slide's own keyframes
     el.classList.add('anim');
-    Stage3D.enter(el, DUR);
     el.querySelectorAll('[data-r]').forEach(function (n, i) {
       n.getAnimations().forEach(function (a) { a.cancel(); });
       n.animate(
@@ -6160,7 +6155,6 @@ var CONFIG = {
     board.setAttribute('data-slide', String(cur));
     board.setAttribute('data-brand', B.dataset.brand || 'both');
 
-    Stage3D.snapshot(A);   // freeze a 3D object into the slide being left
     B.getAnimations().forEach(function (a) { a.cancel(); });
     B.classList.add('on');
     matchEdge(B);
@@ -6169,6 +6163,7 @@ var CONFIG = {
       A.classList.remove('on', 'is-out');
       B.classList.remove('is-in');
       clearAnims(A);
+      Stage3D.enter(B, DUR);   // the object arrives once the seam has passed
       busy = false;
       schedule();
     }
@@ -6196,6 +6191,7 @@ var CONFIG = {
                { transform: 'scale(.94)', filter: 'blur(8px)', opacity: .5 }],
               { duration: D, easing: E, fill: 'both' }).finished.then(done);
 
+    seam.getAnimations().forEach(function (a) { a.cancel(); });
     seam.animate([{ transform: 'translateX(' + (dir > 0 ? 0 : 100) + 'rem)', opacity: 0 },
                   { opacity: 1, offset: .1 },
                   { opacity: 1, offset: .88 },
@@ -6281,7 +6277,9 @@ var CONFIG = {
   addEventListener('resize', function () { Stage3D.fit(); });
 
   function start() {
-    Stage3D.init();          // false just means no WebGL; photos still work
+    // ?3d=0 leaves the models off, so the WebGL cost can be compared on the
+    // shop's own machine with nothing else changed
+    if (Q.get('3d') !== '0') Stage3D.init();   // false just means no WebGL; photos still work
     if (START !== 0) {
       slides[0].classList.remove('on');
       slides[START].classList.add('on');
@@ -6290,6 +6288,7 @@ var CONFIG = {
     board.setAttribute('data-brand', slides[START].dataset.brand || 'both');
     matchEdge(slides[START]);
     enter(slides[START]);
+    Stage3D.enter(slides[START], DUR);
     schedule();
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(start);
