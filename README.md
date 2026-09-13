@@ -231,10 +231,16 @@ mahsulot aylanadi, roʻyxatdagi chiziqchalar navbat bilan yonadi, matn ohista
 tebranadi. Hech biri protsessorni bandi qilmaydi — bularning barchasi brauzer
 videokartasida ishlaydigan CSS animatsiyalari.
 
-Everything on the board drifts: a light crosses the slide, the product turns,
-the list dashes pulse in sequence, the text breathes. None of it costs the
-processor anything — it is all CSS animation, which the browser runs on the
-graphics card rather than the main thread.
+Har bir slayd oʻz umri davomida bir marta sekin oldinga suriladi — matn
+koʻtariladi, rasm yaqinlashadi, yorugʻlik ekran boʻylab oʻtadi. Takrorlanmaydi,
+shuning uchun aylanma emas, video kabi koʻrinadi.
+
+Every slide makes one slow move across its life: the text rises, the artwork
+pushes in, a light crosses the screen, a background photo gets a gentle zoom.
+Nothing repeats within a slide, which is what stops it reading as a loop. The
+product itself turns on two unrelated periods so it never returns to the same
+pose. None of it costs the processor anything — it is all CSS animation, run on
+the graphics card rather than the main thread.
 
 Oʻlchangan natija (asosiy oqimdagi yuklama):
 

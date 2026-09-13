@@ -99,19 +99,19 @@ body.idle{ cursor:none; }
 }
 /* A slow light crossing the slide. One composited layer on a transform, so
    it costs the main thread nothing and keeps the frame alive between cuts. */
-.slide::after{
+.slide.anim::after{
   content:''; position:absolute; z-index:0; pointer-events:none;
   width:74rem; height:74rem; left:50%; top:50%; margin:-37rem 0 0 -37rem;
   background:radial-gradient(closest-side, rgba(232,178,60,.11), transparent 72%);
-  animation:lightDrift 34s ease-in-out infinite;
+  animation:lightSweep 15s cubic-bezier(.3,.5,.4,1) both;
   will-change:transform;
 }
-.s-game::after, .s-office::after, .s-desktop::after{
+.s-game.anim::after, .s-office.anim::after, .s-desktop.anim::after{
   background:radial-gradient(closest-side, rgba(43,179,163,.11), transparent 72%);
 }
-@keyframes lightDrift{
-  0%,100%{ transform:translate3d(-18rem,-7rem,0) scale(1) }
-  50%    { transform:translate3d( 15rem, 6rem,0) scale(1.2) }
+@keyframes lightSweep{
+  from{ transform:translate3d(-20rem,-8rem,0) scale(.92) }
+  to  { transform:translate3d( 17rem, 7rem,0) scale(1.28) }
 }
 @keyframes sunSpin{ from{ transform:rotate(0) } to{ transform:rotate(360deg) } }
 
@@ -481,21 +481,34 @@ body.idle{ cursor:none; }
 
 /* Ambient drift. Every one of these is a transform on its own layer, on its
    own period, so nothing lines up and nothing touches style during playback. */
-.art__in{ animation:artDrift 19s ease-in-out infinite; will-change:transform; }
-.s-phones  .art__in{ animation-duration:23s; }
-.s-acc     .art__in{ animation-duration:17s; }
-.s-game    .art__in{ animation-duration:21s; }
-.s-office  .art__in{ animation-duration:25s; }
-.s-desktop .art__in{ animation-duration:18s; }
-@keyframes artDrift{
-  0%,100%{ transform:translate3d(-.7rem,-.45rem,0) }
-  50%    { transform:translate3d( .8rem, .5rem,0) }
+.slide.anim .art__in{ animation:artMove 15s cubic-bezier(.25,.6,.35,1) both; will-change:transform; }
+.s-phones.anim  .art__in{ animation-duration:17s; }
+.s-acc.anim     .art__in{ animation-duration:14s; }
+.s-office.anim  .art__in{ animation-duration:16s; }
+@keyframes artMove{
+  from{ transform:translate3d(-.8rem, .9rem,0) scale(.965) }
+  to  { transform:translate3d( .7rem,-.8rem,0) scale(1.05) }
 }
 
-.col, .contact__l{ animation:colDrift 27s ease-in-out infinite; }
-@keyframes colDrift{
-  0%,100%{ transform:translate3d(0,-.26rem,0) }
-  50%    { transform:translate3d(0, .26rem,0) }
+.slide.anim .col,
+.slide.anim .cards{ animation:colMove 16s cubic-bezier(.25,.6,.35,1) both; }
+@keyframes colMove{
+  from{ transform:translate3d(0, .85rem,0) }
+  to  { transform:translate3d(0,-.7rem,0) }
+}
+
+/* the hero eases forward the whole time it is up */
+.s-hero.anim .hero{ animation:heroPush 16s cubic-bezier(.25,.6,.35,1) both; }
+@keyframes heroPush{
+  from{ transform:scale(.982) translate3d(0,.5rem,0) }
+  to  { transform:scale(1.028) translate3d(0,-.4rem,0) }
+}
+
+/* a background photograph gets the same slow push a film would give it */
+.slide.anim > .slide__photo{ animation:kenBurns 17s cubic-bezier(.25,.6,.35,1) both; }
+@keyframes kenBurns{
+  from{ transform:scale(1.02) translate3d(.8%,.5%,0) }
+  to  { transform:scale(1.13) translate3d(-1.1%,-.7%,0) }
 }
 
 /* the gold dashes walk down the list, which pulls the eye through it */
@@ -553,8 +566,8 @@ body.is-fs .fsbtn .t--exit{ display:inline; }
    Anything that moves on its own, stops.
    =========================================================================== */
 @media (prefers-reduced-motion: reduce){
-  .board, .slide::before, .slide::after, .art__in, .col, .contact__l,
-  .list li::before, .progress i{ animation:none !important; }
+  .board, .slide::before, .slide.anim::after, .art__in, .col, .cards,
+  .hero, .list li::before, .progress i{ animation:none !important; }
   .slide > .slide__photo{ animation:none !important; }
   .fsbtn{ transition:none; }
   .s-hero.anim .hero__rule,
