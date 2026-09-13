@@ -260,6 +260,24 @@ var Stage3D = (function () {
     renderer.toneMappingExposure = 1.25;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
+    // A kiosk that runs all day will lose its GL context sooner or later —
+    // a driver reset, the GPU dozing. Without this the slot goes black for
+    // good. Fall back to the drawings, then pick up again when it returns.
+    canvas.addEventListener('webglcontextlost', function (ev) {
+      ev.preventDefault();
+      var el = live && live.slideEl, ms = live && live.ms;
+      gl = false; stop();
+      if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+      live = null; swap = null;
+      if (el) enter(el, ms);                    // photos stay, models yield to the drawing
+    }, false);
+    canvas.addEventListener('webglcontextrestored', function () {
+      env = studio(); scene.environment = env; // its render target died with the context
+      gl = true;
+      var el = document.querySelector('.slide.on');
+      if (el) enter(el, 9000);
+    }, false);
+
     scene = new THREE.Scene();
     cam = new THREE.PerspectiveCamera(26, 1, .1, 100);
     cam.position.set(0, .5, 13); cam.lookAt(0, 0, 0);
@@ -429,11 +447,15 @@ var Stage3D = (function () {
     if (!slot) { leave(); return; }
     var key = slot.getAttribute('data-3d');
     var list = items(key);
-    if (!list || !list.length) { leave(); return; }   // nothing to show: the drawing stays
+    if (!list || !list.length) {                       // nothing to show: the drawing comes back
+      leave();
+      slideEl.classList.remove('has3d');               // even when this slide was never live
+      return;
+    }
 
     if (gl) slot.appendChild(canvas);
     slideEl.classList.add('has3d');
-    live = { key: key, slot: slot, items: list, idx: -1,
+    live = { key: key, slot: slot, slideEl: slideEl, ms: slideMs, items: list, idx: -1,
              dur: Math.max(1800, (slideMs || 9000) / list.length), born: performance.now() };
     if (gl) {
       if (live.obj) { pivot.remove(live.obj); live.obj = null; }
@@ -448,10 +470,10 @@ var Stage3D = (function () {
 
   // Freeze the current frame into the slide being left, so the seam still has
   // something to wipe away while the live canvas moves on.
-  function snapshot() { /* retired: the canvas now rides out with the old slide */ }
 
   function leave() {
     if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+    if (live && live.slideEl) live.slideEl.classList.remove('has3d');   // the drawing comes back
     live = null; swap = null; stop();
   }
 
@@ -534,7 +556,7 @@ var Stage3D = (function () {
                worldSize: b ? [+sz.x.toFixed(2), +sz.y.toFixed(2), +sz.z.toFixed(2)] : null,
                aspect: +cam.aspect.toFixed(3), swapping: !!swap };
     },
-    enter: enter, leave: leave, snapshot: snapshot, fit: fit,
+    enter: enter, leave: leave, fit: fit,
     available: function () { return gl; }
   };
 })();

@@ -102,9 +102,6 @@ var CONFIG = {
     });
   })();
 
-  [].forEach.call(document.querySelectorAll('[data-depth]'), function (el) {
-    el.style.setProperty('--d', el.getAttribute('data-depth'));
-  });
 
   // --- one QR per brand, generated from CONFIG --------------------------
   function drawQR(canvasId, text) {

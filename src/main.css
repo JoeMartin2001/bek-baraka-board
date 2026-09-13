@@ -262,7 +262,6 @@ body.idle{ cursor:none; }
 .col{ flex:1 1 auto; min-width:0; }
 .art{ flex:0 0 auto; display:flex; flex-direction:column; align-items:center;
       justify-content:center; gap:1.3rem; pointer-events:none; }
-.art__in{ }
 .art svg{ display:block; overflow:visible; }
 /* The WebGL canvas lives inside the active slide's art slot, so the seam
    clips it exactly like everything else. The drawing stays in the layout,
@@ -281,7 +280,6 @@ body.idle{ cursor:none; }
   to  { opacity:1; transform:none }
 }
 
-.art__snap{ display:none; }
 .art__cap{
   align-self:stretch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   font-size:1.85rem; letter-spacing:.01em; min-height:1.3em;
