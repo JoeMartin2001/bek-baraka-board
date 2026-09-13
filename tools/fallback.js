@@ -17,7 +17,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   console.log('WebGL present :', await js("(function(){var c=document.createElement('canvas');return !!(c.getContext('webgl2')||c.getContext('webgl'))})()"));
   console.log('Stage3D active:', await js("Stage3D.available()"));
   console.log('slide has3d   :', await js("document.querySelector('.s-phones').classList.contains('has3d')"));
-  console.log('svg visible   :', await js("getComputedStyle(document.querySelector('.s-phones .art__in > svg')).visibility"));
+  console.log('svg opacity   :', await js("getComputedStyle(document.querySelector('.s-phones .art__in > svg')).opacity"));
   console.log('canvas in DOM :', await js("!!document.querySelector('canvas.stage3d')"));
   const s=await send('Page.captureScreenshot',{format:'png'});
   fs.writeFileSync(`${OUT}/fallback.png`,Buffer.from(s.data,'base64'));

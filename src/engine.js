@@ -307,9 +307,6 @@ var CONFIG = {
   addEventListener('resize', function () { Stage3D.fit(); });
 
   function start() {
-    // ?3d=0 leaves the models off, so the WebGL cost can be compared on the
-    // shop's own machine with nothing else changed
-    if (Q.get('3d') !== '0') Stage3D.init();   // false just means no WebGL; photos still work
     if (START !== 0) {
       slides[0].classList.remove('on');
       slides[START].classList.add('on');
@@ -318,8 +315,13 @@ var CONFIG = {
     board.setAttribute('data-brand', slides[START].dataset.brand || 'both');
     matchEdge(slides[START]);
     enter(slides[START]);
-    Stage3D.enter(slides[START], DUR);
     schedule();
+    // WebGL boots after the first slide has painted, never in front of it,
+    // and then compiles everything it will ever need while the hero is up
+    setTimeout(function () {
+      if (Q.get('3d') !== '0') { Stage3D.init(); Stage3D.warm(); }
+      Stage3D.enter(slides[START], DUR);
+    }, 0);
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(start);
   else start();

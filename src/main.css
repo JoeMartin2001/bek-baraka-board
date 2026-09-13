@@ -267,7 +267,10 @@ body.idle{ cursor:none; }
    clips it exactly like everything else. The drawing stays in the layout,
    invisible, to hold the slot's size open and to be the fallback. */
 .stage3d{ position:absolute; inset:0; width:100%; height:100%; z-index:2; }
-.slide.has3d .art__in > svg{ visibility:hidden; }
+.art__in > svg{ transition:opacity .45s ease; }
+.slide.has3d .art__in > svg{ opacity:0; }          /* fades out only once the 3D has drawn */
+.stage3d{ transition:opacity .45s ease; }
+.stage3d.pending{ opacity:0; }
 /* a product photograph occupies the same slot as the model */
 .art__photo{
   position:absolute; inset:0; z-index:2;

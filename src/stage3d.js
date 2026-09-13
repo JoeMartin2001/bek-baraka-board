@@ -13,6 +13,7 @@ var Stage3D = (function () {
   var renderer, scene, cam, pivot, canvas, env, gl = false;
   var PHOTOS = {};          // slide key -> [{ img, n }], supplied from CONFIG
   var BUILT = {};           // key:idx -> holder, built once and reused for the life of the page
+  var T = { init: 0, firstFrame: 0 };   // startup timings, readable through debug()
   var SWING_Y = .78, SWING_X = .11, SWING_Z = .05, BOB = .16, FILL = .88;   // ambient drift, and how much of the slot to fill
   var live = null;          // { key, items, idx, dur, obj, born }
   var swap = null;          // { from, to, t0 }
@@ -21,21 +22,20 @@ var Stage3D = (function () {
   // --- materials ----------------------------------------------------------
   var M = {};
   function mats() {
-    M.dark  = new THREE.MeshPhysicalMaterial({ color: 0x3a3e46, metalness: .78, roughness: .38, clearcoat: .5, clearcoatRoughness: .3 });
+    M.dark  = new THREE.MeshStandardMaterial({ color: 0x3a3e46, metalness: .78, roughness: .36 });
     M.steel = new THREE.MeshStandardMaterial({ color: 0xb4bac0, metalness: .85, roughness: .3 });
     M.gold  = new THREE.MeshStandardMaterial({ color: 0xE8B23C, metalness: .88, roughness: .24 });
     M.teal  = new THREE.MeshStandardMaterial({ color: 0x2BB3A3, metalness: .85, roughness: .28 });
-    M.white = new THREE.MeshPhysicalMaterial({ color: 0xf2f2f0, metalness: .05, roughness: .28, clearcoat: .8 });
+    M.white = new THREE.MeshStandardMaterial({ color: 0xf2f2f0, metalness: .05, roughness: .26 });
     M.black = new THREE.MeshBasicMaterial({ color: 0x000000 });
-    M.glass = new THREE.MeshPhysicalMaterial({ transmission: .94, thickness: .08, roughness: .06, metalness: 0, ior: 1.5, color: 0xffffff });
     M.rubber= new THREE.MeshStandardMaterial({ color: 0x2a2d33, metalness: .2, roughness: .7 });
   }
 
   // A studio painted into a canvas: one broad warm strip overhead, a cool
   // kicker behind. PMREM turns it into the reflections the metal needs.
   function studio() {
-    var c = document.createElement('canvas'); c.width = 1024; c.height = 512;
-    var g = c.getContext('2d');
+    var c = document.createElement('canvas'); c.width = 512; c.height = 256;
+    var g = c.getContext('2d'); g.scale(.5, .5);
     g.fillStyle = '#000'; g.fillRect(0, 0, 1024, 512);
     var grd = g.createLinearGradient(0, 0, 0, 512);
     grd.addColorStop(0, '#17120a'); grd.addColorStop(.5, '#000'); grd.addColorStop(1, '#000');
@@ -298,10 +298,10 @@ var Stage3D = (function () {
     return gl ? CATALOG[key] : null;
   }
 
-  function build(key, idx) {
+  function build(key, idx, item) {
     var id = key + ':' + idx, holder = BUILT[id];
     if (!holder) {
-      var item = live.items[idx];
+      item = item || live.items[idx];
       holder = new THREE.Group();
       holder.add(item.b());
       holder.userData.name = item.n;
@@ -392,6 +392,10 @@ var Stage3D = (function () {
       img.classList.add('in');
     } else { img.classList.add('in'); }
     caption(item.n);
+    // a photo that has not arrived yet must not blank the slot either
+    var el = live.slideEl;
+    if (img.complete && img.naturalWidth) el.classList.add('has3d');
+    else img.onload = function () { if (live && live.slot === img.parentNode) el.classList.add('has3d'); };
   }
 
   function hidePhoto() {
@@ -453,8 +457,8 @@ var Stage3D = (function () {
       return;
     }
 
-    if (gl) slot.appendChild(canvas);
-    slideEl.classList.add('has3d');
+    if (gl) { canvas.classList.add('pending'); slot.appendChild(canvas); }
+    slideEl.classList.remove('has3d');            // the drawing holds the slot until we have drawn
     live = { key: key, slot: slot, slideEl: slideEl, ms: slideMs, items: list, idx: -1,
              dur: Math.max(1800, (slideMs || 9000) / list.length), born: performance.now() };
     if (gl) {
@@ -517,6 +521,10 @@ var Stage3D = (function () {
       pivot.position.y = Math.sin(t * .19) * BOB * .7 + Math.sin(t * .053) * BOB * .3;
     }
     renderer.render(scene, cam);
+    if (canvas.classList.contains('pending')) {  // first real frame: now hide the drawing
+      canvas.classList.remove('pending');
+      live.slideEl.classList.add('has3d');
+    }
   }
 
   function start() { if (!raf && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } }
@@ -525,7 +533,31 @@ var Stage3D = (function () {
   });
   function stop()  { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
 
+  // Build every model and compile every shader up front, in small idle
+  // slices, so a slide's first visit never has to do it in front of the
+  // customer. Runs while the hero is on screen, which has no 3D of its own.
+  function warm() {
+    if (!gl) return;
+    var jobs = [];
+    Object.keys(CATALOG).forEach(function (key) {
+      if (PHOTOS[key] && PHOTOS[key].length) return;     // photos need no shaders
+      CATALOG[key].forEach(function (item, idx) { jobs.push([key, idx, item]); });
+    });
+    var later = window.requestIdleCallback || function (f) { setTimeout(f, 40); };
+    (function step() {
+      if (!gl || !jobs.length) return;
+      var j = jobs.shift(), holder = build(j[0], j[1], j[2]);
+      if (!live || !live.obj) {                           // never disturb a slide being shown
+        pivot.add(holder);
+        try { renderer.compile(scene, cam); } catch (e) {}
+        pivot.remove(holder);
+      }
+      later(step);
+    })();
+  }
+
   return {
+    warm: warm,
     // CONFIG.rasm -> { key: [{ img, n }] }; a slide with photos shows those
     setPhotos: function (map) {
       PHOTOS = {};
@@ -542,15 +574,16 @@ var Stage3D = (function () {
         if (out.length) PHOTOS[k] = out;
       });
     },
-    init: function () { gl = boot(); return gl; },
+    init: function () { var t0 = performance.now(); gl = boot(); T.init = Math.round(performance.now() - t0); return gl; },
     probe: function (fn) { if (live && live.obj) return fn(live.obj, THREE, scene, cam, renderer, canvas); },
     debug: function () {
       var mem = gl && renderer ? renderer.info.memory : null;
-      if (!live) return { gl: gl, live: false, geometries: mem && mem.geometries, textures: mem && mem.textures };
+      var fr  = gl && renderer ? renderer.info.render.frame : 0;
+      if (!live) return { gl: gl, live: false, geometries: mem && mem.geometries, textures: mem && mem.textures, frames: fr, initMs: T.init };
       var o = live.obj, b = o ? new THREE.Box3().setFromObject(o) : null, sz = new THREE.Vector3();
       if (b) b.getSize(sz);
       return { key: live.key, idx: live.idx, kids: pivot.children.length,
-               geometries: mem && mem.geometries, textures: mem && mem.textures,
+               geometries: mem && mem.geometries, textures: mem && mem.textures, frames: fr, initMs: T.init,
                scale: o ? +o.scale.x.toFixed(4) : null,
                pos: o ? [+o.position.x.toFixed(2), +o.position.y.toFixed(2)] : null,
                worldSize: b ? [+sz.x.toFixed(2), +sz.y.toFixed(2), +sz.z.toFixed(2)] : null,
