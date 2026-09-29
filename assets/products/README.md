@@ -16,6 +16,9 @@ best; without a photo the board falls back to its drawing.
 | `handshake.jpg` | Pexels, Ekaterina Bolovtsova | Pexels License — tijorat uchun bepul |
 | `iphone-18-pro.png`, `iphone-hero.jpg` | Apple | ishlab chiqaruvchining mahsulot surati |
 | `asus-tuf-a15.png` | ASUS TUF Gaming A15 (2024) mahsulot galereyasi | ishlab chiqaruvchining mahsulot surati |
+| `galaxy-s25-ultra.png` | Samsung Galaxy S25 Ultra mahsulot galereyasi | ishlab chiqaruvchining mahsulot surati |
+| `ipad-pro.png` | Apple iPad Pro (M4) mahsulot galereyasi | ishlab chiqaruvchining mahsulot surati |
+| `rayban-meta.png` | Ray-Ban Meta Gen 3 Wayfarer (RW4011) | ishlab chiqaruvchining mahsulot surati |
 
 Ishlab chiqaruvchining suratlari — oʻzingiz sotadigan mahsulotni koʻrsatish
 uchun. Agar doʻkon bu modellarni sotmasa, oʻrniga oʻz suratingizni qoʻying.

@@ -44,7 +44,10 @@ var CONFIG = {
   rasm: {
     nasiya:    [],       // bu slaydda mahsulot oʻrni yoʻq; qoʻl berishish — fon rasmi (pastda)
     telefon:   [
-      { rasm: 'assets/products/iphone-18-pro.png', nom: 'iPhone 18 Pro' }
+      { rasm: 'assets/products/iphone-18-pro.png',   nom: 'iPhone 18 Pro' },
+      { rasm: 'assets/products/galaxy-s25-ultra.png', nom: 'Samsung Galaxy S25 Ultra' },
+      { rasm: 'assets/products/ipad-pro.png',         nom: 'iPad Pro' },
+      { rasm: 'assets/products/rayban-meta.png',      nom: 'Ray-Ban Meta' }
     ],
     gaming:    [
       { rasm: 'assets/products/asus-tuf-a15.png', nom: 'Asus TUF Gaming A15' }

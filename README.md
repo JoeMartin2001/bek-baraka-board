@@ -18,7 +18,7 @@ shop is speaking is readable from across the room.
 | 1 | Bosh sahifa | ikkalasi | ikkala brend, shiorlari, Instagram / Telegram / telefon |
 | 2 | Nasiya savdo | Bizda Baraka | 1 dona pasport va 50% bosh toʻlov, trade-in; qoʻl berishish surati |
 | 3 | Oʻyin va grafika | Next Nout | zamonaviy oʻyinlar, 3D render, 4K montaj; Asus TUF surati va oʻyin kompyuteri |
-| 4 | Telefon va gadjetlar | Bizda Baraka | iPhone, Android, iPad, Ray-Ban; telefon sotib olish |
+| 4 | Telefon va gadjetlar | Bizda Baraka | iPhone, Galaxy, iPad, Ray-Ban suratlari; telefon sotib olish |
 | 5 | Bogʻlanish | ikkalasi | ikkala raqam, ikkita QR, manzil, ish vaqti |
 
 Bizda Baraka slaydlari oltin rangda, Next Nout slaydlari feruza rangda. Pastdagi
@@ -47,18 +47,18 @@ logo and the 3D library are embedded, so it keeps running if the connection drop
 
 ### 3D mahsulotlar / The 3D products
 
-Mahsulot slaydlarida haqiqiy suratlar va 3D modellar navbatma-navbat aylanadi:
-iPhone 18 Pro va Asus TUF Gaming A15 — surat; Android telefon, iPad, Ray-Ban
-Meta koʻzoynak, oʻyin kompyuteri — 3D model. Har safar
+Mahsulot slaydlarida haqiqiy suratlar navbatma-navbat aylanadi: iPhone 18 Pro,
+Samsung Galaxy S25 Ultra, iPad Pro, Ray-Ban Meta va Asus TUF Gaming A15.
+Oʻyin kompyuteri — 3D model (uning surati hali yoʻq). Har safar
 slayd 2–3 tasini koʻrsatadi va keyingi aylanishda qolganlaridan davom etadi —
 nomi pastida yoziladi.
 
 Modellar fayl ichida yasaladi, tashqi fayl kerak emas. Agar kompyuterda WebGL
 ishlamasa, ekran oʻzi eski chizmalarga qaytadi va hech narsa buzilmaydi.
 
-Each product slide cycles photographs and 3D models together — the iPhone 18 Pro
-and Asus TUF Gaming A15 are photographs; the Android phone, iPad, Ray-Ban Meta
-glasses and gaming tower are models. A slide shows two or three per visit
+Each product slide cycles photographs — iPhone 18 Pro, Galaxy S25 Ultra, iPad
+Pro, Ray-Ban Meta and the Asus TUF Gaming A15. The gaming tower is still a 3D
+model, since no photograph of one has been supplied. A slide shows two or three per visit
 and carries on from there next lap, captioned. The models are built in code, so there
 are no asset files. If the machine cannot run WebGL the board silently falls
 back to the engraved drawings; nothing breaks.
