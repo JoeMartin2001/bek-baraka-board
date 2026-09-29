@@ -16,7 +16,7 @@ shop is speaking is readable from across the room.
 | | Slayd | Doʻkon | Nima haqida |
 |---|---|---|---|
 | 1 | Bosh sahifa | ikkalasi | ikkala brend, shiorlari, Instagram / Telegram / telefon |
-| 2 | Nasiya savdo | Bizda Baraka | 1 dona pasport va 50% bosh toʻlov, trade-in; qoʻl berishish |
+| 2 | Nasiya savdo | Bizda Baraka | 1 dona pasport va 50% bosh toʻlov, trade-in; qoʻl berishish surati |
 | 3 | Oʻyin va grafika | Next Nout | zamonaviy oʻyinlar, 3D render, 4K montaj; noutbuk va kompyuter |
 | 4 | Telefon va gadjetlar | Bizda Baraka | iPhone, Android, iPad, Ray-Ban; telefon sotib olish |
 | 5 | Bogʻlanish | ikkalasi | ikkala raqam, ikkita QR, manzil, ish vaqti |
@@ -132,8 +132,9 @@ rasm: {
 ```
 
 Rasmlar oʻsha slaydning 3D modellari bilan bitta navbatda yuradi — avval
-rasmlar, keyin modellar. `nasiya` ga rasm qoʻysangiz (masalan, qoʻl berib
-soʻrashayotgan ikki kishi), u chizma oʻrniga chiqadi. Rasm topilmasa ham ekran
+rasmlar, keyin modellar. Nasiya slaydidagi qoʻl berishish surati `fon.nasiya`
+da turadi (Pexels, Ekaterina Bolovtsova — bepul, tijorat uchun ham). Boshqa
+surat qoʻymoqchi boʻlsangiz, shu yoʻlni almashtiring. Rasm topilmasa ham ekran
 buzilmaydi — 3D model oʻrnida qoladi.
 
 Leave a slide empty and it keeps its 3D model. Several photos on one slide cycle

@@ -42,7 +42,7 @@ var CONFIG = {
   // Product photos. They join the slide's 3D models in one carousel:
   // photos first, then the models.
   rasm: {
-    nasiya:    [],       // rasm qoʻysangiz, qoʻl berishish chizmasi oʻrniga chiqadi
+    nasiya:    [],       // bu slaydda mahsulot oʻrni yoʻq; qoʻl berishish — fon rasmi (pastda)
     telefon:   [
       { rasm: 'assets/products/iphone-18-pro.png', nom: 'iPhone 18 Pro' }
     ],
@@ -52,7 +52,7 @@ var CONFIG = {
   // Slayd orqasidagi fon rasmi. Matnni bosmasligi uchun xiralashtiriladi.
   // Background photo behind a slide; dimmed so it never fights the words.
   fon: {
-    nasiya:    '',
+    nasiya:    'assets/products/handshake.jpg',
     telefon:   'assets/products/iphone-hero.jpg',
     gaming:    ''
   }
@@ -156,8 +156,7 @@ var CONFIG = {
   Object.keys(CONFIG.fon || {}).forEach(function (key) {
     var src = CONFIG.fon[key];
     if (!src) return;
-    var slot = document.querySelector('[data-3d="' + key + '"]');
-    var slide = slot && slot.closest('[data-slide-el]');
+    var slide = document.querySelector('[data-slide-el][data-key="' + key + '"]');
     if (!slide) return;
     var img = new Image();
     img.onload = function () {              // only once it has actually loaded

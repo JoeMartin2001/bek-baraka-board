@@ -369,6 +369,8 @@ var Stage3D = (function () {
     if (canvas && canvas.parentNode === live.slot) canvas.style.display = 'none';
     img.src = item.img;
     img.style.display = 'block';
+    // a JPEG has no transparency, so its edges are feathered into the room
+    img.classList.toggle('feather', /\.jpe?g(\?|$)/i.test(item.img));
     if (!instant && !RM) {
       img.classList.remove('in');
       void img.offsetWidth;

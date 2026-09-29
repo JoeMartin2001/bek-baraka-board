@@ -150,6 +150,20 @@ body.idle{ cursor:none; }
           mask-image:linear-gradient(180deg, #000 55%, rgba(0,0,0,.35));
 }
 
+/* The nasiya photograph is dark already, so it is shown almost as it is:
+   it fills the right of the slide and fades out under the words. */
+.s-nasiya > .slide__photo{
+  opacity:.94; filter:saturate(.85) contrast(1.02);
+  background-size:76% auto; background-position:100% 30%;
+  -webkit-mask-image:linear-gradient(90deg, transparent 40%, rgba(0,0,0,.55) 55%, #000 66%),
+                     linear-gradient(180deg, transparent 3%, #000 20%, #000 72%, transparent 90%);
+          mask-image:linear-gradient(90deg, transparent 40%, rgba(0,0,0,.55) 55%, #000 66%),
+                     linear-gradient(180deg, transparent 3%, #000 20%, #000 72%, transparent 90%);
+  -webkit-mask-composite:source-in; mask-composite:intersect;
+}
+.s-nasiya .row{ min-height:26rem; }   /* keeps the column where it was without the art */
+.s-nasiya .col{ max-width:52rem; }    /* the words stay on the black; the photo has the rest */
+
 /* each slide's sun sits where that slide's light comes from */
 .s-hero::before   { left:50%; top:46%; }
 .s-nasiya::before { left:76%; top:56%; }
@@ -363,6 +377,11 @@ body.idle{ cursor:none; }
   opacity:0;
 }
 .art__photo.in{ animation:photoIn .62s cubic-bezier(.16,1,.3,1) both; }
+/* a photograph with no transparent background: soften its rectangle away */
+.art__photo.feather{
+  -webkit-mask-image:radial-gradient(ellipse 62% 62% at 50% 50%, #000 52%, transparent 100%);
+          mask-image:radial-gradient(ellipse 62% 62% at 50% 50%, #000 52%, transparent 100%);
+}
 @keyframes photoIn{
   from{ opacity:0; transform:translateX(22%) }
   to  { opacity:1; transform:none }
@@ -381,7 +400,6 @@ body.idle{ cursor:none; }
 
 .art__in{ position:relative; }
 .art--phone  .art__in{ width:27rem;   height:25.5rem; }  /* square-ish: a phone, a tablet and a pair of glasses all fit */
-.art--hand   .art__in{ width:31rem;   height:17.4rem; }
 .s-nasiya .lead{ font-size:4.1rem; }
 .s-nasiya .meta{ margin-top:2.2rem; }
 .s-nasiya .offer{ margin-top:2.3rem; }
@@ -399,20 +417,6 @@ body.idle{ cursor:none; }
 .s-game .ln  { stroke:var(--rishtan); }
 .s-game .ln-d{ stroke:rgba(43,179,163,.55); }
 
-/* the handshake: two people, drawn in the mark's own gold. The near hand
-   is the brighter one; the two arms come in from either side and meet. */
-.hs-sl  { fill:#0f0c07; stroke:var(--gold); stroke-width:3; }
-.hs-cf  { fill:#1a1408; stroke:var(--gold); stroke-width:3; }
-.hs-far { fill:#B8862A; stroke:#5c3d0c; stroke-width:2.5; stroke-linejoin:round; }
-.hs-near{ fill:var(--gold); stroke:#5c3d0c; stroke-width:2.5; stroke-linejoin:round; }
-.hs-web { fill:var(--gold); }
-.hs-f1  { fill:none; stroke:#5c3d0c; stroke-linecap:round; }
-.hs-f2  { fill:none; stroke:var(--gold); stroke-linecap:round; }
-.hs-f3  { fill:none; stroke:#B8862A; stroke-linecap:round; }
-.s-nasiya.anim .hs-l{ animation:handL 1.1s var(--ease-out) .4s both; }
-.s-nasiya.anim .hs-r{ animation:handR 1.1s var(--ease-out) .4s both; }
-@keyframes handL{ from{ transform:translateX(-14%); opacity:0 } to{ transform:none; opacity:1 } }
-@keyframes handR{ from{ transform:translateX( 14%); opacity:0 } to{ transform:none; opacity:1 } }
 
 /* the laptop lid swings open as slide 3 arrives */
 /* the laptop lid swings open as the gaming slide arrives */
@@ -528,7 +532,6 @@ body.idle{ cursor:none; }
    own period, so nothing lines up and nothing touches style during playback. */
 .slide.on.anim .art__in{ animation:artMove 15s cubic-bezier(.25,.6,.35,1) both; }
 .s-phones.on.anim  .art__in{ animation-duration:17s; }
-.s-nasiya.on.anim  .art__in{ animation-duration:14s; }
 @keyframes artMove{
   from{ transform:translate3d(-.8rem, .9rem,0) scale(.965) }
   to  { transform:translate3d( .7rem,-.8rem,0) scale(1.05) }
@@ -550,6 +553,11 @@ body.idle{ cursor:none; }
 
 /* a background photograph gets the same slow push a film would give it */
 .slide.on.anim > .slide__photo{ animation:kenBurns 17s cubic-bezier(.25,.6,.35,1) both; }
+.s-nasiya.on.anim > .slide__photo{ animation-name:kenBurnsSoft; }   /* the hands must stay clear of the chrome */
+@keyframes kenBurnsSoft{
+  from{ transform:scale(1) translate3d(.4%,.3%,0) }
+  to  { transform:scale(1.05) translate3d(-.5%,-.4%,0) }
+}
 .slide.on.anim > .fasl__photo{ animation:kenBurns 40s cubic-bezier(.25,.6,.35,1) both; }
 @keyframes kenBurns{
   from{ transform:scale(1.02) translate3d(.8%,.5%,0) }
@@ -621,7 +629,6 @@ body.is-fs .fsbtn .t--exit{ display:inline; }
   .s-hero.anim .hero__side--l,
   .s-hero.anim .hero__side--r,
   .s-game.anim .lid,
-  .s-nasiya.anim .hs-l, .s-nasiya.anim .hs-r,
   .s-hero.anim .hook,
   .s-game.anim .glow{ animation:none; }
   .art__photo.in{ animation:none; opacity:1; }
@@ -669,8 +676,9 @@ body.is-fs .fsbtn .t--exit{ display:inline; }
       </div>
     </section>
 
-    <!-- 2 ─ nasiya: the offer that opens their own ad ───────────────────── -->
-    <section class="slide s-nasiya" data-slide-el data-brand="baraka">
+    <!-- 2 ─ nasiya: the offer that opens their own ad. The handshake is the
+         slide's own background photograph (CONFIG.fon.nasiya). ───────── -->
+    <section class="slide s-nasiya" data-slide-el data-key="nasiya" data-brand="baraka">
       <h2 class="h" data-r>Nasiya savdo</h2>
       <div class="hr" data-r></div>
       <div class="row">
@@ -681,34 +689,11 @@ body.is-fs .fsbtn .t--exit{ display:inline; }
           </div>
           <p class="offer" data-r>Trade-in: eskisini bering, yangisini oling</p>
         </div>
-
-        <div class="art art--hand" data-r><div class="art__in" data-rasm="nasiya" data-3d="nasiya">
-          <svg viewBox="0 0 640 360" aria-hidden="true">
-            <g class="hs-r">
-            <path class="hs-sl" d="M640 116H512v130h128z"/>
-            <rect class="hs-cf" x="492" y="112" width="34" height="158" rx="6"/>
-            <path class="hs-far" d="M522 130c-70-8-134 2-186 30l-30 16c-18 10-22 34-8 48l30 30c40 30 110 34 176 20l18-4z"/>
-            </g>
-            <g class="hs-l">
-            <!-- left person --><path class="hs-sl" d="M0 140h130v130H0z"/>
-            <rect class="hs-cf" x="116" y="134" width="34" height="158" rx="6"/>
-            <path class="hs-near" d="M150 156c40-14 90-16 130-6c14 4 24 8 32 14v148c-8 6-18 10-32 14c-40 10-90 8-130-6z"/>
-            <!-- four fingers of the left hand, over the back of the right hand -->
-            <line class="hs-f1" x1="292" y1="190" x2="398" y2="210" stroke-width="40"/><line class="hs-f2" x1="292" y1="190" x2="398" y2="210" stroke-width="34"/>
-            <line class="hs-f1" x1="292" y1="226" x2="396" y2="246" stroke-width="40"/><line class="hs-f2" x1="292" y1="226" x2="396" y2="246" stroke-width="34"/>
-            <line class="hs-f1" x1="292" y1="262" x2="386" y2="280" stroke-width="40"/><line class="hs-f2" x1="292" y1="262" x2="386" y2="280" stroke-width="34"/>
-            <line class="hs-f1" x1="292" y1="296" x2="364" y2="310" stroke-width="36"/><line class="hs-f2" x1="292" y1="296" x2="364" y2="310" stroke-width="30"/>
-            <path class="hs-web" d="M250 166c24 0 44 6 62 14v138c-18 8-38 14-62 14z"/>
-            <!-- right thumb, over the top -->
-            <line class="hs-f1" x1="420" y1="150" x2="316" y2="170" stroke-width="46"/><line class="hs-f3" x1="420" y1="150" x2="316" y2="170" stroke-width="40"/>
-            </g>
-          </svg>
-        </div><p class="art__cap"></p></div>
       </div>
     </section>
 
     <!-- 3 ─ oʻyin va grafika ────────────────────────────────────────────── -->
-    <section class="slide s-game" data-slide-el data-brand="nextnout">
+    <section class="slide s-game" data-slide-el data-key="gaming" data-brand="nextnout">
       <h2 class="h" data-r>Oʻyin va grafika</h2>
       <div class="hr" data-r></div>
       <div class="row">
@@ -745,7 +730,7 @@ body.is-fs .fsbtn .t--exit{ display:inline; }
     </section>
 
     <!-- 4 ─ telefon va gadjetlar ──────────────────────────────────────────────────── -->
-    <section class="slide s-phones" data-slide-el data-brand="baraka">
+    <section class="slide s-phones" data-slide-el data-key="telefon" data-brand="baraka">
       <h2 class="h" data-r>Telefon va gadjetlar</h2>
       <div class="hr" data-r></div>
       <div class="row">
@@ -5433,6 +5418,8 @@ var Stage3D = (function () {
     if (canvas && canvas.parentNode === live.slot) canvas.style.display = 'none';
     img.src = item.img;
     img.style.display = 'block';
+    // a JPEG has no transparency, so its edges are feathered into the room
+    img.classList.toggle('feather', /\.jpe?g(\?|$)/i.test(item.img));
     if (!instant && !RM) {
       img.classList.remove('in');
       void img.offsetWidth;
@@ -6000,7 +5987,7 @@ var CONFIG = {
   // Product photos. They join the slide's 3D models in one carousel:
   // photos first, then the models.
   rasm: {
-    nasiya:    [],       // rasm qoʻysangiz, qoʻl berishish chizmasi oʻrniga chiqadi
+    nasiya:    [],       // bu slaydda mahsulot oʻrni yoʻq; qoʻl berishish — fon rasmi (pastda)
     telefon:   [
       { rasm: 'assets/products/iphone-18-pro.png', nom: 'iPhone 18 Pro' }
     ],
@@ -6010,7 +5997,7 @@ var CONFIG = {
   // Slayd orqasidagi fon rasmi. Matnni bosmasligi uchun xiralashtiriladi.
   // Background photo behind a slide; dimmed so it never fights the words.
   fon: {
-    nasiya:    '',
+    nasiya:    'assets/products/handshake.jpg',
     telefon:   'assets/products/iphone-hero.jpg',
     gaming:    ''
   }
@@ -6114,8 +6101,7 @@ var CONFIG = {
   Object.keys(CONFIG.fon || {}).forEach(function (key) {
     var src = CONFIG.fon[key];
     if (!src) return;
-    var slot = document.querySelector('[data-3d="' + key + '"]');
-    var slide = slot && slot.closest('[data-slide-el]');
+    var slide = document.querySelector('[data-slide-el][data-key="' + key + '"]');
     if (!slide) return;
     var img = new Image();
     img.onload = function () {              // only once it has actually loaded
