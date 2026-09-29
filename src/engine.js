@@ -46,7 +46,9 @@ var CONFIG = {
     telefon:   [
       { rasm: 'assets/products/iphone-18-pro.png', nom: 'iPhone 18 Pro' }
     ],
-    gaming:    []
+    gaming:    [
+      { rasm: 'assets/products/asus-tuf-a15.png', nom: 'Asus TUF Gaming A15' }
+    ]
   },
 
   // Slayd orqasidagi fon rasmi. Matnni bosmasligi uchun xiralashtiriladi.

@@ -116,27 +116,6 @@ var Stage3D = (function () {
 
 
 
-  function laptop(o) {
-    o = o || {};
-    var g = new THREE.Group();
-    g.add(box(4.3, .17, 2.95, .07, M.dark));
-    var kb = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 1.5), M.rubber);
-    kb.rotation.x = -Math.PI / 2; kb.position.set(0, .088, -.35); g.add(kb);
-    var pad = new THREE.Mesh(new THREE.PlaneGeometry(1.4, .95), new THREE.MeshStandardMaterial({ color: 0x1b1f24, metalness: .9, roughness: .3 }));
-    pad.rotation.x = -Math.PI / 2; pad.position.set(0, .089, .86); g.add(pad);
-    var lid = new THREE.Group();
-    var shell = slab(4.3, 2.78, .13, .1, M.dark); shell.position.y = 1.39; lid.add(shell);
-    var s = new THREE.Mesh(new THREE.PlaneGeometry(4.02, 2.5), lit(o.teal === false ? '232,178,60' : '43,179,163', .5));
-    s.position.set(0, 1.39, .07); lid.add(s);
-    lid.position.set(0, .085, -1.47); lid.rotation.x = -.3; g.add(lid);
-    if (o.glow) {
-      var gl = new THREE.Mesh(new THREE.PlaneGeometry(3.7, .13),
-        new THREE.MeshBasicMaterial({ color: 0x2BB3A3, transparent: true, opacity: .8, blending: THREE.AdditiveBlending }));
-      gl.position.set(0, -.06, 1.49); g.add(gl);
-    }
-    g.position.y = -.75;
-    return g;
-  }
 
 
   // an Android flagship: a punch-hole camera and a vertical camera bar,
@@ -213,6 +192,7 @@ var Stage3D = (function () {
     }
     var btn = new THREE.Mesh(new THREE.CircleGeometry(.08, 16), new THREE.MeshBasicMaterial({ color: 0xE8B23C }));
     btn.position.set(0, 1.72, 1.005); g.add(btn);
+    g.rotation.y = -Math.PI / 2 + .38;   // glass side toward the room, still three-quarter
     return g;
   }
 
@@ -223,8 +203,7 @@ var Stage3D = (function () {
                 { n: 'Android telefon',  b: function () { return android(0x3b3f47); } },
                 { n: 'iPad',             b: tablet },
                 { n: 'Ray-Ban Meta',     b: glasses }],
-    gaming:    [{ n: 'Oʻyin noutbugi',   b: function () { return laptop({ glow: true }); } },
-                { n: 'Oʻyin kompyuteri', b: tower }]
+    gaming:    [{ n: 'Oʻyin kompyuteri', b: tower }]
   };
   // A slide shows a few of its items each visit and carries on from there
   // next time round, so a short slide still gets through the whole range.
@@ -498,7 +477,9 @@ var Stage3D = (function () {
     if (!swap && live.items.length > 1 && now - live.born > live.dur * (live.idx + 1)) {
       setItem((live.idx + 1) % live.items.length);
     }
-    if (!gl || !live.obj) return;
+    // A hand-over from a photograph has no outgoing object, so "nothing live"
+    // is not the same as "nothing to draw": the incoming model is in `swap`.
+    if (!gl || (!live.obj && !swap)) return;
     if (now - last < 33) return;              // 30fps is plenty for a turntable
     last = now;
 
@@ -514,7 +495,8 @@ var Stage3D = (function () {
       }
       swap.to.scale.setScalar(Math.max(.0001, swap.to.userData.k * inp));
       swap.to.rotation.y = (1 - inp) * -1.15;
-      if (outp >= 1 && swap.from) { pivot.remove(swap.from); swap.from = null; caption(swap.to.userData.name); }
+      if (outp >= 1 && swap.from) { pivot.remove(swap.from); swap.from = null; }
+      if (outp >= 1 && !swap.named) { swap.named = 1; caption(swap.to.userData.name); }
       if (k >= 1) {
         live.obj = swap.to;
         swap.to.scale.setScalar(swap.to.userData.k);
