@@ -113,55 +113,8 @@ var Stage3D = (function () {
     return g;
   }
 
-  function airpods() {
-    var g = new THREE.Group();
-    var c = box(1.5, 1.22, 1.12, .34, M.white); g.add(c);          // case
-    var lid = new THREE.Mesh(new THREE.BoxGeometry(1.44, .02, 1.06), M.steel);
-    lid.position.y = .34; g.add(lid);                               // hinge seam
-    var led = new THREE.Mesh(new THREE.CircleGeometry(.045, 16), new THREE.MeshBasicMaterial({ color: 0x8bd6a0 }));
-    led.position.set(0, -.1, .565); g.add(led);
-    [-.42, .42].forEach(function (x) {                              // two buds, out of the case
-      var b = new THREE.Group();
-      var bud = new THREE.Mesh(new THREE.SphereGeometry(.27, 24, 18), M.white);
-      bud.scale.set(1, .82, .9); bud.position.y = .42; b.add(bud);
-      var stem = box(.16, .95, .16, .075, M.white);
-      stem.position.set(0, -.2, -.02); b.add(stem);
-      var tip = new THREE.Mesh(new THREE.SphereGeometry(.145, 16, 12), M.rubber);
-      tip.position.set(x > 0 ? .2 : -.2, .48, .02); tip.scale.set(.9, 1, .8); b.add(tip);
-      b.position.set(x * 2.25, .18, .05);
-      b.rotation.z = x > 0 ? -.2 : .2;
-      g.add(b);
-    });
-    return g;
-  }
 
-  function powerbank() {
-    var g = new THREE.Group();
-    g.add(box(1.9, 3.0, .82, .22, M.dark));
-    var panel = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), lit('232,178,60', .5));
-    panel.position.z = .42; panel.position.y = .45; g.add(panel);
-    for (var i = 0; i < 4; i++) {                                   // charge dots
-      var d = new THREE.Mesh(new THREE.CircleGeometry(.055, 14), new THREE.MeshBasicMaterial({ color: 0xE8B23C }));
-      d.position.set(-.33 + i * .22, -.95, .42); g.add(d);
-    }
-    [-.45, .0, .45].forEach(function (x, i) {                        // ports
-      var p = new THREE.Mesh(new THREE.BoxGeometry(i === 1 ? .3 : .24, .12, .1), M.black);
-      p.position.set(x, 1.52, 0); g.add(p);
-    });
-    return g;
-  }
 
-  function charger() {
-    var g = new THREE.Group();
-    g.add(box(1.5, 1.5, 1.1, .3, M.white));
-    [-.3, .3].forEach(function (x) {                                 // prongs
-      var p = new THREE.Mesh(new THREE.CylinderGeometry(.075, .075, .8, 14), M.steel);
-      p.position.set(x, 1.1, 0); g.add(p);
-    });
-    var usb = new THREE.Mesh(new THREE.BoxGeometry(.34, .13, .1), M.black);
-    usb.position.set(0, -.76, 0); g.add(usb);
-    return g;
-  }
 
   function laptop(o) {
     o = o || {};
@@ -185,15 +138,67 @@ var Stage3D = (function () {
     return g;
   }
 
-  function monoblok() {
+
+  // an Android flagship: a punch-hole camera and a vertical camera bar,
+  // which is what tells it apart from the iPhone at a glance
+  function android(bodyColor) {
     var g = new THREE.Group();
-    var shell = slab(4.4, 2.8, .3, .12, M.dark); shell.position.y = 1.1; g.add(shell);
-    var s = new THREE.Mesh(new THREE.PlaneGeometry(4.1, 2.5), lit('43,179,163', .68));
-    s.position.set(0, 1.1, .16); g.add(s);
-    var neck = box(.5, .95, .22, .06, M.steel); neck.position.set(0, -.72, -.15); g.add(neck);
-    var foot = box(1.9, .12, 1.0, .05, M.steel); foot.position.set(0, -1.24, .05); g.add(foot);
-    var kb = box(2.9, .1, .95, .04, M.dark); kb.position.set(0, -1.24, 1.5); g.add(kb);
-    g.position.y = -.35;
+    var frameM = new THREE.MeshStandardMaterial({ color: bodyColor, metalness: .7, roughness: .34 });
+    g.add(slab(1.60, 3.40, .16, .22, frameM));
+    g.add(slab(1.50, 3.30, .18, .19, M.dark));
+    var sc = new THREE.Mesh(new THREE.PlaneGeometry(1.44, 3.20), lit('80,200,140', .62));
+    sc.position.z = .093; g.add(sc);
+    var hole = new THREE.Mesh(new THREE.CircleGeometry(.055, 16), M.black);
+    hole.position.set(0, 1.42, .1); g.add(hole);
+    var bar = slab(.42, 1.26, .09, .2, frameM); bar.position.set(-.5, .86, -.115); g.add(bar);
+    [1.28, .86, .44].forEach(function (y) {
+      var lens = new THREE.Mesh(new THREE.CylinderGeometry(.135, .135, .08, 24), M.dark);
+      lens.rotation.x = Math.PI / 2; lens.position.set(-.5, y, -.18); g.add(lens);
+      var ring = new THREE.Mesh(new THREE.TorusGeometry(.135, .02, 8, 24), M.steel);
+      ring.position.set(-.5, y, -.19); g.add(ring);
+    });
+    return g;
+  }
+
+  // an iPad, slightly turned so it is not a bigger phone: thin even bezels,
+  // one camera in the corner, the pencil clipped to its edge
+  function tablet() {
+    var g = new THREE.Group();
+    g.add(slab(3.30, 4.40, .14, .22, M.steel));
+    g.add(slab(3.20, 4.30, .16, .19, M.dark));
+    var sc = new THREE.Mesh(new THREE.PlaneGeometry(3.02, 4.12), lit('232,178,60', .55));
+    sc.position.z = .083; g.add(sc);
+    var cam = new THREE.Mesh(new THREE.CylinderGeometry(.11, .11, .06, 20), M.dark);
+    cam.rotation.x = Math.PI / 2; cam.position.set(-1.28, 1.86, -.09); g.add(cam);
+    var pen = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 2.6, 12), M.white);
+    pen.position.set(1.74, .3, 0); g.add(pen);
+    var tip = new THREE.Mesh(new THREE.ConeGeometry(.06, .2, 12), M.white);
+    tip.position.set(1.74, -1.1, 0); tip.rotation.x = Math.PI; g.add(tip);
+    return g;
+  }
+
+  // Ray-Ban smart glasses: the Wayfarer's thick frame, a small camera at
+  // each hinge, temples folded back so the silhouette reads from a distance
+  function glasses() {
+    var g = new THREE.Group();
+    var frameM = new THREE.MeshStandardMaterial({ color: 0x15110c, metalness: .35, roughness: .32 });
+    var lensM  = new THREE.MeshStandardMaterial({ color: 0x2a3c40, metalness: .9, roughness: .12, transparent: true, opacity: .82 });
+    [-1.02, 1.02].forEach(function (x) {
+      var rim = slab(1.84, 1.34, .22, .5, frameM); rim.position.x = x; g.add(rim);
+      var lens = slab(1.52, 1.04, .06, .4, lensM); lens.position.set(x, -.03, .04); g.add(lens);
+      var ring = new THREE.Mesh(new THREE.TorusGeometry(.075, .018, 8, 20), M.steel);
+      ring.position.set(x < 0 ? -1.72 : 1.72, .46, .115); g.add(ring);
+      var camd = new THREE.Mesh(new THREE.CircleGeometry(.06, 18), M.black);
+      camd.position.set(x < 0 ? -1.72 : 1.72, .46, .116); g.add(camd);
+    });
+    var bridge = box(.5, .22, .22, .08, frameM); bridge.position.y = .3; g.add(bridge);
+    [-1, 1].forEach(function (sgn) {
+      var temple = box(.16, .2, 3.4, .06, frameM);
+      temple.position.set(sgn * 1.9, .42, -1.8); g.add(temple);
+      var tip = box(.16, .3, .9, .06, frameM);
+      tip.position.set(sgn * 1.9, .2, -3.4); tip.rotation.x = .35; g.add(tip);
+    });
+    g.rotation.x = .18;
     return g;
   }
 
@@ -211,40 +216,20 @@ var Stage3D = (function () {
     return g;
   }
 
-  function deskset() {
-    var g = new THREE.Group();
-    var t = tower(); t.scale.setScalar(.62); t.position.set(-2.35, -.55, 0); g.add(t);
-    var m = monoblok(); m.position.set(1.15, .1, 0); m.scale.setScalar(.82); g.add(m);
-    return g;
-  }
 
-  function passport() {
-    var g = new THREE.Group();
-    var cover = slab(2.1, 2.9, .18, .1, new THREE.MeshStandardMaterial({ color: 0x123024, metalness: .3, roughness: .6 }));
-    cover.rotation.z = .06; g.add(cover);
-    var emblem = new THREE.Mesh(new THREE.TorusGeometry(.36, .045, 10, 28), M.gold);
-    emblem.position.set(0, .35, .1); emblem.rotation.z = .06; g.add(emblem);
-    var card = slab(2.4, 1.5, .07, .11, M.white);
-    card.position.set(1.15, -.85, .3); card.rotation.z = -.05; g.add(card);
-    var photo = new THREE.Mesh(new THREE.PlaneGeometry(.58, .74), M.rubber);
-    photo.position.set(.52, -.83, .34); photo.rotation.z = -.05; g.add(photo);
-    return g;
-  }
 
   var CATALOG = {
-    nasiya:    [{ n: 'Pasport va 50%',   b: passport }],
-    telefon:   [{ n: 'iPhone 18 Pro',    b: function () { return phone(0x6d6a68); } },
-                { n: 'iPhone 18',        b: function () { return phone(0x2c3d5a); } },
-                { n: 'Smartfonlar',      b: function () { return phone(0x14140f); } }],
-    aksessuar: [{ n: 'AirPods',          b: airpods },
-                { n: 'Quvvat banki',     b: powerbank },
-                { n: 'Zaryadlagich',     b: charger }],
+    telefon:   [{ n: 'iPhone 18',        b: function () { return phone(0x2c3d5a); } },
+                { n: 'Android telefon',  b: function () { return android(0x3b3f47); } },
+                { n: 'iPad',             b: tablet },
+                { n: 'Ray-Ban Meta',     b: glasses }],
     gaming:    [{ n: 'Oʻyin noutbugi',   b: function () { return laptop({ glow: true }); } },
-                { n: 'Oʻyin kompyuteri', b: tower }],
-    ofis:      [{ n: 'Noutbuk',          b: function () { return laptop({}); } },
-                { n: 'Monoblok',         b: monoblok }],
-    desktop:   [{ n: 'Kompyuter toʻplami', b: deskset }]
+                { n: 'Oʻyin kompyuteri', b: tower }]
   };
+  // A slide shows a few of its items each visit and carries on from there
+  // next time round, so a short slide still gets through the whole range.
+  var CURSOR = {};
+  var PER_ITEM = 3000;                    // no object gets less than this
 
   // --- lifecycle ----------------------------------------------------------
   function boot() {
@@ -257,7 +242,7 @@ var Stage3D = (function () {
     if (!renderer.getContext()) return false;
     renderer.setPixelRatio(Math.min(1.25, window.devicePixelRatio || 1));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.42;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     // A kiosk that runs all day will lose its GL context sooner or later —
@@ -275,7 +260,7 @@ var Stage3D = (function () {
       env = studio(); scene.environment = env; // its render target died with the context
       gl = true;
       var el = document.querySelector('.slide.on');
-      if (el) enter(el, 9000);
+      if (el) enter(el, 7000);
     }, false);
 
     scene = new THREE.Scene();
@@ -293,15 +278,13 @@ var Stage3D = (function () {
   }
 
   function items(key) {
-    var ph = PHOTOS[key];
-    if (ph && ph.length) return ph;        // real photos win over the models
-    return gl ? CATALOG[key] : null;
+    var ph = PHOTOS[key] || [], md = gl ? (CATALOG[key] || []) : [];
+    return ph.length || md.length ? ph.concat(md) : null;   // photos first, then the models
   }
 
-  function build(key, idx, item) {
-    var id = key + ':' + idx, holder = BUILT[id];
+  function build(key, item) {
+    var id = key + ':' + item.n, holder = BUILT[id];
     if (!holder) {
-      item = item || live.items[idx];
       holder = new THREE.Group();
       holder.add(item.b());
       holder.userData.name = item.n;
@@ -417,7 +400,7 @@ var Stage3D = (function () {
     }
     if (!gl) return;
     hidePhoto();
-    var next = build(live.key, idx);
+    var next = build(live.key, item);
     if (instant || RM) {
       if (live.obj) pivot.remove(live.obj);
       pivot.add(next); live.obj = next;
@@ -432,7 +415,12 @@ var Stage3D = (function () {
   function caption(text) {
     if (!live || !live.slot) return;
     var c = live.slot.parentNode.querySelector('.art__cap');
-    if (c) c.textContent = text || '';
+    if (!c) return;
+    c.textContent = '';
+    String(text || '').split('\u02BB').forEach(function (part, i) {   // oʻ / gʻ, tightened like the rest
+      if (i) { var m = document.createElement('i'); m.className = 'uz'; m.textContent = '\u02BB'; c.appendChild(m); }
+      if (part) c.appendChild(document.createTextNode(part));
+    });
   }
 
   function fit() {
@@ -457,10 +445,16 @@ var Stage3D = (function () {
       return;
     }
 
+    // this visit's share of the range, starting where the last visit stopped
+    var ms = slideMs || 7000, take = Math.max(1, Math.min(list.length, Math.floor(ms / PER_ITEM)));
+    var from = CURSOR[key] || 0, pick = [];
+    for (var i = 0; i < take; i++) pick.push(list[(from + i) % list.length]);
+    CURSOR[key] = (from + take) % list.length;
+
     if (gl) { canvas.classList.add('pending'); slot.appendChild(canvas); }
     slideEl.classList.remove('has3d');            // the drawing holds the slot until we have drawn
-    live = { key: key, slot: slot, slideEl: slideEl, ms: slideMs, items: list, idx: -1,
-             dur: Math.max(1800, (slideMs || 9000) / list.length), born: performance.now() };
+    live = { key: key, slot: slot, slideEl: slideEl, ms: ms, items: pick, idx: -1,
+             dur: ms / pick.length, born: performance.now() };
     if (gl) {
       if (live.obj) { pivot.remove(live.obj); live.obj = null; }
       while (pivot.children.length) pivot.remove(pivot.children[0]);
@@ -540,13 +534,12 @@ var Stage3D = (function () {
     if (!gl) return;
     var jobs = [];
     Object.keys(CATALOG).forEach(function (key) {
-      if (PHOTOS[key] && PHOTOS[key].length) return;     // photos need no shaders
-      CATALOG[key].forEach(function (item, idx) { jobs.push([key, idx, item]); });
+      CATALOG[key].forEach(function (item) { jobs.push([key, item]); });
     });
     var later = window.requestIdleCallback || function (f) { setTimeout(f, 40); };
     (function step() {
       if (!gl || !jobs.length) return;
-      var j = jobs.shift(), holder = build(j[0], j[1], j[2]);
+      var j = jobs.shift(), holder = build(j[0], j[1]);
       if (!live || !live.obj) {                           // never disturb a slide being shown
         pivot.add(holder);
         try { renderer.compile(scene, cam); } catch (e) {}

@@ -16,23 +16,37 @@ var CONFIG = {
   manzil:    ['Fargʻona shahri, Mustaqillik koʻchasi 12',  // manzil, 1-qator
               'Telefon bozori, 3-qator'],                  // manzil, 2-qator
   ish_vaqti: 'Har kuni  09:00 – 20:00',  // ish vaqti
-  sekund:    9,                          // har bir slayd necha soniya turadi
+  sekund:    7,                          // har bir slayd necha soniya turadi
+
+  // Fasl. Ekranning yorugʻligi va rangi faslga qarab oʻzgaradi.
+  //   'avto'  — sanaga qarab oʻzi tanlaydi
+  //   'bahor' | 'yoz' | 'kuz' | 'qish'  — qoʻlda tanlash
+  //   ''      — oddiy (oltin) koʻrinish
+  // Season: tints the whole board. 'avto' picks from today's date.
+  fasl: '',
+
+  // Har fasl uchun fon rasmi (ixtiyoriy). Rasmni assets/ ichiga qoʻying.
+  // Barcha slaydlar orqasida xira koʻrinadi. Boʻsh qolsa — rasmsiz.
+  // Optional background photo per season, shown dimmed behind every slide.
+  fasl_rasm: {
+    bahor: '',
+    yoz:   '',
+    kuz:   '',
+    qish:  ''
+  },
 
   // Mahsulot rasmlari. Rasmni assets/products/ ichiga qoʻying va shu yerga
-  // yozing. Bir slaydga bir nechta rasm qoʻysangiz — navbatma-navbat oʻtadi.
-  // Boʻsh qoldirsangiz, oʻsha slaydda 3D model koʻrinadi.
+  // yozing. Rasmlar 3D modellar bilan birga navbatma-navbat oʻtadi —
+  // avval rasmlar, keyin modellar.
   //
-  // Product photos. Several per slide cycle one after another; leave a slide
-  // empty and it shows its 3D model instead.
+  // Product photos. They join the slide's 3D models in one carousel:
+  // photos first, then the models.
   rasm: {
-    nasiya:    [],
+    nasiya:    [],       // rasm qoʻysangiz, qoʻl berishish chizmasi oʻrniga chiqadi
     telefon:   [
       { rasm: 'assets/products/iphone-18-pro.png', nom: 'iPhone 18 Pro' }
     ],
-    aksessuar: [],
-    gaming:    [],
-    ofis:      [],
-    desktop:   []
+    gaming:    []
   },
 
   // Slayd orqasidagi fon rasmi. Matnni bosmasligi uchun xiralashtiriladi.
@@ -40,10 +54,7 @@ var CONFIG = {
   fon: {
     nasiya:    '',
     telefon:   'assets/products/iphone-hero.jpg',
-    aksessuar: '',
-    gaming:    '',
-    ofis:      '',
-    desktop:   ''
+    gaming:    ''
   }
 };
 
@@ -77,6 +88,11 @@ var CONFIG = {
   set('tel-nextnout', CONFIG.telefon_nextnout);
   set('at-baraka',   '@' + at(CONFIG.instagram_baraka));
   set('at-nextnout', '@' + at(CONFIG.instagram_nextnout));
+  set('h-ig-baraka',   '@' + at(CONFIG.instagram_baraka));
+  set('h-tel-baraka',  CONFIG.telefon_baraka);
+  set('h-ig-nextnout', '@' + at(CONFIG.instagram_nextnout));
+  set('h-tg-nextnout', '@' + at(CONFIG.telegram_nextnout));
+  set('h-tel-nextnout',CONFIG.telefon_nextnout);
 
   var addr = document.getElementById('addr');
   CONFIG.manzil.forEach(function (line) {
@@ -139,6 +155,32 @@ var CONFIG = {
     };
     img.src = src;
   });
+
+  // --- the season ----------------------------------------------------------
+  // One attribute on the board retints every room; a photo, if the shop has
+  // one for the season, goes behind each slide like a product photo does.
+  (function season() {
+    var f = Q.get('fasl') || CONFIG.fasl || '';
+    if (f === 'avto') {
+      var m = new Date().getMonth();          // 0 = yanvar
+      f = m < 2 || m === 11 ? 'qish' : m < 5 ? 'bahor' : m < 8 ? 'yoz' : 'kuz';
+    }
+    if (['bahor', 'yoz', 'kuz', 'qish'].indexOf(f) < 0) return;
+    board.setAttribute('data-fasl', f);
+    var src = (CONFIG.fasl_rasm || {})[f];
+    if (!src) return;
+    var img = new Image();
+    img.onload = function () {
+      slides.forEach(function (slide) {
+        var d = document.createElement('div');
+        d.className = 'fasl__photo';
+        d.style.backgroundImage = 'url("' + src + '")';
+        slide.insertBefore(d, slide.firstChild);
+      });
+      matchEdge(slides[cur]);
+    };
+    img.src = src;
+  })();
 
   // The board drifts a pixel or two for burn-in, and letterboxes on panels that
   // are not 16:9. Give the page behind it the slide's own ground so neither

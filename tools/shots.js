@@ -1,5 +1,5 @@
 const fs=require('fs'); const PORT=9333, BASE=process.argv[2], OUT=process.argv[3];
-const N=parseInt(process.argv[4]||'7',10);
+const N=parseInt(process.argv[4]||'5',10);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{
   let list; for(let i=0;i<40;i++){ try{list=await(await fetch(`http://127.0.0.1:${PORT}/json/list`)).json(); if(list.length)break;}catch(e){} await sleep(250);}

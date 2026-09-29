@@ -1,10 +1,10 @@
 # Bizda Baraka × Next Nout — doʻkon ekrani / shop board
 
-Fargʻonadagi telefon va kompyuter doʻkoni uchun 8 ta slaydli ekran.
-Chrome'da ochiladi, monitorda kun boʻyi aylanib turadi. Bir aylanish ~78 soniya.
+Fargʻonadagi telefon va kompyuter doʻkoni uchun 5 ta slaydli ekran.
+Chrome'da ochiladi, monitorda kun boʻyi aylanib turadi. Bir aylanish ~38 soniya.
 
-An eight-slide board for a phone and computer shop in Fergana. Opens in Chrome
-and loops all day on a monitor; one lap is about 78 seconds.
+A five-slide board for a phone and computer shop in Fergana. Opens in Chrome
+and loops all day on a monitor; one lap is about 38 seconds.
 
 Ikkala doʻkon navbatma-navbat chiqadi — Bizda Baraka, Next Nout, Bizda Baraka,
 Next Nout. Har brendning oʻz rangi bor, shuning uchun qaysi doʻkon gapirayotgani
@@ -15,14 +15,11 @@ shop is speaking is readable from across the room.
 
 | | Slayd | Doʻkon | Nima haqida |
 |---|---|---|---|
-| 1 | Bosh sahifa | ikkalasi | ikkala brend, har birining oʻz shiori bilan |
-| 2 | Nasiya savdo | Bizda Baraka | 1 dona pasport va 50% bosh toʻlov evaziga |
-| 3 | Oʻyin va grafika | Next Nout | oʻyin noutbuklari, kuchli videokarta |
-| 4 | Telefonlar | Bizda Baraka | iPhone va smartfonlar, telefon sotib olish |
-| 5 | Ofis va oʻqish | Next Nout | noutbuk, monoblok, printer, Wi-Fi modem |
-| 6 | Aksessuarlar | Bizda Baraka | gʻilof, quvvat banki, quloqchin, zaryadlagich |
-| 7 | Kompyuterlar | Next Nout | tizim bloki, monitor, sozlab berish |
-| 8 | Bogʻlanish | ikkalasi | ikkala raqam, ikkita QR, manzil, ish vaqti |
+| 1 | Bosh sahifa | ikkalasi | ikkala brend, shiorlari, Instagram / Telegram / telefon |
+| 2 | Nasiya savdo | Bizda Baraka | 1 dona pasport va 50% bosh toʻlov, trade-in; qoʻl berishish |
+| 3 | Oʻyin va grafika | Next Nout | zamonaviy oʻyinlar, 3D render, 4K montaj; noutbuk va kompyuter |
+| 4 | Telefon va gadjetlar | Bizda Baraka | iPhone, Android, iPad, Ray-Ban; telefon sotib olish |
+| 5 | Bogʻlanish | ikkalasi | ikkala raqam, ikkita QR, manzil, ish vaqti |
 
 Bizda Baraka slaydlari oltin rangda, Next Nout slaydlari feruza rangda. Pastdagi
 belgilardan gapirayotgan brendi yorqin turadi — mijoz qaysi raqamga qoʻngʻiroq
@@ -50,16 +47,17 @@ logo and the 3D library are embedded, so it keeps running if the connection drop
 
 ### 3D mahsulotlar / The 3D products
 
-Har bir mahsulot slaydida haqiqiy 3D model aylanib turadi: iPhone, AirPods,
-quvvat banki, zaryadlagich, noutbuk, monoblok, tizim bloki, pasport. Bitta
-slaydda bir nechta mahsulot navbatma-navbat oʻtadi — nomi pastida yoziladi.
+Mahsulot slaydlarida haqiqiy 3D model aylanib turadi: iPhone, Android telefon,
+iPad, Ray-Ban Meta koʻzoynak, oʻyin noutbugi, oʻyin kompyuteri. Har safar
+slayd 2–3 tasini koʻrsatadi va keyingi aylanishda qolganlaridan davom etadi —
+nomi pastida yoziladi.
 
 Modellar fayl ichida yasaladi, tashqi fayl kerak emas. Agar kompyuterda WebGL
 ishlamasa, ekran oʻzi eski chizmalarga qaytadi va hech narsa buzilmaydi.
 
-Each product slide turns a real 3D model — iPhone, AirPods, power bank, charger,
-laptop, all-in-one, tower, passport — and slides with several products cycle
-through them one at a time, captioned. The models are built in code, so there
+Each product slide turns a real 3D model — iPhone, Android phone, iPad, Ray-Ban
+Meta glasses, gaming laptop, gaming tower. A slide shows two or three per visit
+and carries on from there next lap, captioned. The models are built in code, so there
 are no asset files. If the machine cannot run WebGL the board silently falls
 back to the engraved drawings; nothing breaks.
 
@@ -84,9 +82,13 @@ var CONFIG = {
   manzil:    ['Fargʻona shahri, Mustaqillik koʻchasi 12',
               'Telefon bozori, 3-qator'],
   ish_vaqti: 'Har kuni  09:00 – 20:00',
-  sekund:    9,                          // har bir slayd necha soniya turadi
+  sekund:    7,                          // har bir slayd necha soniya turadi
 
-  rasm: { nasiya:'', telefon:'', aksessuar:'', gaming:'', ofis:'', desktop:'' }
+  fasl: '',                              // '' | 'avto' | 'bahor' | 'yoz' | 'kuz' | 'qish'
+  fasl_rasm: { bahor:'', yoz:'', kuz:'', qish:'' },
+
+  rasm: { nasiya:[], telefon:[ ... ], gaming:[] },
+  fon:  { nasiya:'', telefon:'', gaming:'' }
 };
 ```
 
@@ -103,6 +105,18 @@ qilish shart emas.
 
 Change a handle and its QR code regenerates itself — nothing else to do.
 
+### Fasllar / Seasons
+
+`fasl` ekranning butun yorugʻligini oʻzgartiradi: bahor — yashil, yoz — oltin,
+kuz — sariq-qizgʻish, qish — muzdek koʻk. `'avto'` desangiz, sanaga qarab oʻzi
+tanlaydi. Har fasl uchun `fasl_rasm` ga rasm yoʻlini yozsangiz, u barcha
+slaydlar orqasida xira koʻrinadi. Koʻrib chiqish uchun manzilga `?fasl=qish`
+qoʻshing.
+
+`fasl` retints the whole board (spring green, summer gold, autumn amber, winter
+ice-blue); `'avto'` picks from the date. A path in `fasl_rasm` puts that photo,
+dimmed, behind every slide. Preview any season with `?fasl=qish` in the URL.
+
 ### Mahsulot rasmlarini qoʻshish / Adding product photos
 
 Rasmni `assets/products/` papkasiga qoʻying, keyin `rasm` ichida yozing. Bir
@@ -117,7 +131,9 @@ rasm: {
 }
 ```
 
-Boʻsh qoldirsangiz, oʻsha slaydda 3D model koʻrinadi. Rasm topilmasa ham ekran
+Rasmlar oʻsha slaydning 3D modellari bilan bitta navbatda yuradi — avval
+rasmlar, keyin modellar. `nasiya` ga rasm qoʻysangiz (masalan, qoʻl berib
+soʻrashayotgan ikki kishi), u chizma oʻrniga chiqadi. Rasm topilmasa ham ekran
 buzilmaydi — 3D model oʻrnida qoladi.
 
 Leave a slide empty and it keeps its 3D model. Several photos on one slide cycle
