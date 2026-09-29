@@ -228,7 +228,7 @@ var Stage3D = (function () {
   };
   // A slide shows a few of its items each visit and carries on from there
   // next time round, so a short slide still gets through the whole range.
-  var CURSOR = {};
+  var CURSOR = {}, LAST_MS = 7000;
   var PER_ITEM = 3000;                    // no object gets less than this
 
   // --- lifecycle ----------------------------------------------------------
@@ -260,7 +260,7 @@ var Stage3D = (function () {
       env = studio(); scene.environment = env; // its render target died with the context
       gl = true;
       var el = document.querySelector('.slide.on');
-      if (el) enter(el, 7000);
+      if (el) enter(el, LAST_MS);
     }, false);
 
     scene = new THREE.Scene();
@@ -377,8 +377,20 @@ var Stage3D = (function () {
     caption(item.n);
     // a photo that has not arrived yet must not blank the slot either
     var el = live.slideEl;
+    img.onload = img.onerror = null;
     if (img.complete && img.naturalWidth) el.classList.add('has3d');
-    else img.onload = function () { if (live && live.slot === img.parentNode) el.classList.add('has3d'); };
+    else {
+      img.onload  = function () { if (live && live.slot === img.parentNode) el.classList.add('has3d'); };
+      // a missing file: back to the drawing, no caption, and move on if there is more
+      img.onerror = function () {
+        if (!live || live.slot !== img.parentNode) return;
+        img.style.display = 'none';
+        el.classList.remove('has3d');
+        caption('');
+        live.bad = (live.bad || 0) + 1;
+        if (live.bad < live.items.length) setItem((live.idx + 1) % live.items.length, true);
+      };
+    }
   }
 
   function hidePhoto() {
@@ -446,10 +458,11 @@ var Stage3D = (function () {
     }
 
     // this visit's share of the range, starting where the last visit stopped
-    var ms = slideMs || 7000, take = Math.max(1, Math.min(list.length, Math.floor(ms / PER_ITEM)));
+    var ms = slideMs || LAST_MS, take = Math.max(1, Math.min(list.length, Math.floor(ms / PER_ITEM)));
     var from = CURSOR[key] || 0, pick = [];
     for (var i = 0; i < take; i++) pick.push(list[(from + i) % list.length]);
     CURSOR[key] = (from + take) % list.length;
+    LAST_MS = ms;
 
     if (gl) { canvas.classList.add('pending'); slot.appendChild(canvas); }
     slideEl.classList.remove('has3d');            // the drawing holds the slot until we have drawn

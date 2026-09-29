@@ -86,16 +86,29 @@ var CONFIG = {
 
   set('tel-baraka',   CONFIG.telefon_baraka);
   set('tel-nextnout', CONFIG.telefon_nextnout);
-  set('at-baraka',   '@' + at(CONFIG.instagram_baraka));
-  set('at-nextnout', '@' + at(CONFIG.instagram_nextnout));
-  set('h-ig-baraka',   '@' + at(CONFIG.instagram_baraka));
-  set('h-tel-baraka',  CONFIG.telefon_baraka);
-  set('h-ig-nextnout', '@' + at(CONFIG.instagram_nextnout));
-  set('h-tg-nextnout', '@' + at(CONFIG.telegram_nextnout));
-  set('h-tel-nextnout',CONFIG.telefon_nextnout);
+  // a handle or number the shop leaves blank takes its icon with it,
+  // rather than leaving a bare "@" on screen
+  function row(el) { return el.tagName === 'B' ? el.parentNode : el; }   // icon + text, or the line itself
+  function handle(id, h) {
+    var el = document.getElementById(id), v = at(h);
+    el.textContent = v ? '@' + v : '';
+    row(el).hidden = !v;
+  }
+  function tel(id, n) {
+    var el = document.getElementById(id), v = String(n || '').trim();
+    el.textContent = v;
+    row(el).hidden = !v;
+  }
+  handle('at-baraka',     CONFIG.instagram_baraka);
+  handle('at-nextnout',   CONFIG.instagram_nextnout);
+  handle('h-ig-baraka',   CONFIG.instagram_baraka);
+  handle('h-ig-nextnout', CONFIG.instagram_nextnout);
+  handle('h-tg-nextnout', CONFIG.telegram_nextnout);
+  tel('h-tel-baraka',     CONFIG.telefon_baraka);
+  tel('h-tel-nextnout',   CONFIG.telefon_nextnout);
 
   var addr = document.getElementById('addr');
-  CONFIG.manzil.forEach(function (line) {
+  [].concat(CONFIG.manzil || []).forEach(function (line) {
     var p = document.createElement('p'); p.textContent = line; addr.appendChild(p);
   });
   set('hours', CONFIG.ish_vaqti);

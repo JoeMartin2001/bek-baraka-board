@@ -40,6 +40,7 @@
 html{ font-size:min(1vw, 1.777778vh); overflow:hidden; }
 
 *{ margin:0; padding:0; box-sizing:border-box; }
+[hidden]{ display:none !important; }
 
 body{
   background:#000;
@@ -232,8 +233,8 @@ body.idle{ cursor:none; }
 .s-hero{ flex-direction:column; justify-content:center; padding-bottom:1rem; }
 .hero{ display:flex; align-items:center; justify-content:center; gap:7rem; }
 .hero__side{ display:flex; flex-direction:column; }
-.hero__side--l{ align-items:center; width:31rem; }
-.hero__side--r{ align-items:flex-start; width:31rem; }
+.hero__side--l{ align-items:center; width:41rem; }
+.hero__side--r{ align-items:flex-start; width:41rem; }
 .hero__mark{ width:25.5rem; }
 .hero__word{ width:24rem; margin-top:2.6rem; }
 .hero__tag { width:13rem;  margin-top:1.2rem; }

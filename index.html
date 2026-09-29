@@ -68,6 +68,7 @@ src:url(data:font/woff2;base64,d09GMgABAAAAAJ0wABQAAAABWRgAAJy6AAEAAAAAAAAAAAAAA
 html{ font-size:min(1vw, 1.777778vh); overflow:hidden; }
 
 *{ margin:0; padding:0; box-sizing:border-box; }
+[hidden]{ display:none !important; }
 
 body{
   background:#000;
@@ -260,8 +261,8 @@ body.idle{ cursor:none; }
 .s-hero{ flex-direction:column; justify-content:center; padding-bottom:1rem; }
 .hero{ display:flex; align-items:center; justify-content:center; gap:7rem; }
 .hero__side{ display:flex; flex-direction:column; }
-.hero__side--l{ align-items:center; width:31rem; }
-.hero__side--r{ align-items:flex-start; width:31rem; }
+.hero__side--l{ align-items:center; width:41rem; }
+.hero__side--r{ align-items:flex-start; width:41rem; }
 .hero__mark{ width:25.5rem; }
 .hero__word{ width:24rem; margin-top:2.6rem; }
 .hero__tag { width:13rem;  margin-top:1.2rem; }
@@ -5291,7 +5292,7 @@ var Stage3D = (function () {
   };
   // A slide shows a few of its items each visit and carries on from there
   // next time round, so a short slide still gets through the whole range.
-  var CURSOR = {};
+  var CURSOR = {}, LAST_MS = 7000;
   var PER_ITEM = 3000;                    // no object gets less than this
 
   // --- lifecycle ----------------------------------------------------------
@@ -5323,7 +5324,7 @@ var Stage3D = (function () {
       env = studio(); scene.environment = env; // its render target died with the context
       gl = true;
       var el = document.querySelector('.slide.on');
-      if (el) enter(el, 7000);
+      if (el) enter(el, LAST_MS);
     }, false);
 
     scene = new THREE.Scene();
@@ -5440,8 +5441,20 @@ var Stage3D = (function () {
     caption(item.n);
     // a photo that has not arrived yet must not blank the slot either
     var el = live.slideEl;
+    img.onload = img.onerror = null;
     if (img.complete && img.naturalWidth) el.classList.add('has3d');
-    else img.onload = function () { if (live && live.slot === img.parentNode) el.classList.add('has3d'); };
+    else {
+      img.onload  = function () { if (live && live.slot === img.parentNode) el.classList.add('has3d'); };
+      // a missing file: back to the drawing, no caption, and move on if there is more
+      img.onerror = function () {
+        if (!live || live.slot !== img.parentNode) return;
+        img.style.display = 'none';
+        el.classList.remove('has3d');
+        caption('');
+        live.bad = (live.bad || 0) + 1;
+        if (live.bad < live.items.length) setItem((live.idx + 1) % live.items.length, true);
+      };
+    }
   }
 
   function hidePhoto() {
@@ -5509,10 +5522,11 @@ var Stage3D = (function () {
     }
 
     // this visit's share of the range, starting where the last visit stopped
-    var ms = slideMs || 7000, take = Math.max(1, Math.min(list.length, Math.floor(ms / PER_ITEM)));
+    var ms = slideMs || LAST_MS, take = Math.max(1, Math.min(list.length, Math.floor(ms / PER_ITEM)));
     var from = CURSOR[key] || 0, pick = [];
     for (var i = 0; i < take; i++) pick.push(list[(from + i) % list.length]);
     CURSOR[key] = (from + take) % list.length;
+    LAST_MS = ms;
 
     if (gl) { canvas.classList.add('pending'); slot.appendChild(canvas); }
     slideEl.classList.remove('has3d');            // the drawing holds the slot until we have drawn
@@ -6030,16 +6044,29 @@ var CONFIG = {
 
   set('tel-baraka',   CONFIG.telefon_baraka);
   set('tel-nextnout', CONFIG.telefon_nextnout);
-  set('at-baraka',   '@' + at(CONFIG.instagram_baraka));
-  set('at-nextnout', '@' + at(CONFIG.instagram_nextnout));
-  set('h-ig-baraka',   '@' + at(CONFIG.instagram_baraka));
-  set('h-tel-baraka',  CONFIG.telefon_baraka);
-  set('h-ig-nextnout', '@' + at(CONFIG.instagram_nextnout));
-  set('h-tg-nextnout', '@' + at(CONFIG.telegram_nextnout));
-  set('h-tel-nextnout',CONFIG.telefon_nextnout);
+  // a handle or number the shop leaves blank takes its icon with it,
+  // rather than leaving a bare "@" on screen
+  function row(el) { return el.tagName === 'B' ? el.parentNode : el; }   // icon + text, or the line itself
+  function handle(id, h) {
+    var el = document.getElementById(id), v = at(h);
+    el.textContent = v ? '@' + v : '';
+    row(el).hidden = !v;
+  }
+  function tel(id, n) {
+    var el = document.getElementById(id), v = String(n || '').trim();
+    el.textContent = v;
+    row(el).hidden = !v;
+  }
+  handle('at-baraka',     CONFIG.instagram_baraka);
+  handle('at-nextnout',   CONFIG.instagram_nextnout);
+  handle('h-ig-baraka',   CONFIG.instagram_baraka);
+  handle('h-ig-nextnout', CONFIG.instagram_nextnout);
+  handle('h-tg-nextnout', CONFIG.telegram_nextnout);
+  tel('h-tel-baraka',     CONFIG.telefon_baraka);
+  tel('h-tel-nextnout',   CONFIG.telefon_nextnout);
 
   var addr = document.getElementById('addr');
-  CONFIG.manzil.forEach(function (line) {
+  [].concat(CONFIG.manzil || []).forEach(function (line) {
     var p = document.createElement('p'); p.textContent = line; addr.appendChild(p);
   });
   set('hours', CONFIG.ish_vaqti);
