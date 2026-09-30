@@ -375,9 +375,16 @@ var Stage3D = (function () {
     raf = requestAnimationFrame(frame);
     if (!live) return;
 
-    // the carousel runs whether the item is a model or a photograph
-    if (!swap && live.items.length > 1 && now - live.born > live.dur * (live.idx + 1)) {
-      setItem((live.idx + 1) % live.items.length);
+    // The carousel runs whether the item is a model or a photograph. Each
+    // deadline must be crossed once: this visit's list is already cut to the
+    // length of the slide and CURSOR carries the place into the next visit, so
+    // there is nothing to wrap back to. Wrapping here made the index — and with
+    // it the deadline — go backwards, so every later frame was past due and
+    // swapped the item again. A model hand-over sets `swap` and so was throttled
+    // to the crossfade; a photograph clears it, and strobed at frame rate.
+    if (!swap && live.idx + 1 < live.items.length &&
+        now - live.born > live.dur * (live.idx + 1)) {
+      setItem(live.idx + 1);
     }
     // A hand-over from a photograph has no outgoing object, so "nothing live"
     // is not the same as "nothing to draw": the incoming model is in `swap`.
