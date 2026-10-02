@@ -1,5 +1,5 @@
 /* Runs the loop fast for a while and samples everything that could grow:
-   live Animation objects, GPU geometries and textures, JS heap. Anything
+   live Animation objects, JS heap, DOM nodes. Anything
    that climbs with laps is a leak, and leaks are what "gets messy after a
    couple of loops" looks like. */
 const PORT=9333, BASE=process.argv[2], SECS=+(process.argv[3]||60);
@@ -19,20 +19,20 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   await send('Page.navigate',{url:BASE+'?sek=1.2'}); await sleep(2500);
   const sample=async()=>{
     const m=(await send('Performance.getMetrics')).metrics; const o={}; m.forEach(x=>o[x.name]=x.value);
-    const d=JSON.parse(await js("JSON.stringify(Stage3D.debug())"));
+    const d=JSON.parse(await js("JSON.stringify(Slot.debug())"));
     return { anims: await js("document.getAnimations().length"),
-             geom: d.geometries, tex: d.textures,
+             item: (d.idx===undefined?'-':d.idx+'/'+d.of),
              heapMB: +(o.JSHeapUsedSize/1048576).toFixed(1),
              nodes: o.Nodes, layers: o.LayoutObjects,
              slide: await js("document.getElementById('board').dataset.slide") };
   };
-  console.log('   t   slide  animations  geometries  textures  heapMB   nodes');
+  console.log('   t   slide  animations   item   heapMB   nodes');
   const t0=Date.now();
   while(Date.now()-t0 < SECS*1000){
     const s=await sample();
     console.log(String(Math.round((Date.now()-t0)/1000)).padStart(4)+'s   '+String(s.slide).padStart(3)+
-      String(s.anims).padStart(12)+String(s.geom).padStart(12)+String(s.tex).padStart(10)+
-      String(s.heapMB).padStart(8)+String(s.nodes).padStart(8));
+      String(s.anims).padStart(12)+String(s.item).padStart(8)+
+      String(s.heapMB).padStart(9)+String(s.nodes).padStart(8));
     await sleep(10000);
   }
   console.log(probs.length?'PROBLEMS: '+probs.slice(0,3).join(' | '):'no exceptions');

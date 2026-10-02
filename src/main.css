@@ -334,15 +334,11 @@ body.idle{ cursor:none; }
 }
 .art__in > svg{ position:relative; z-index:1; }
 .col{ position:relative; z-index:1; }
-/* The WebGL canvas lives inside the active slide's art slot, so the seam
-   clips it exactly like everything else. The drawing stays in the layout,
-   invisible, to hold the slot's size open and to be the fallback. */
-.stage3d{ position:absolute; inset:0; width:100%; height:100%; z-index:2; }
+/* The drawing stays in the layout, invisible, to hold the slot's size open
+   and to stand in until a photograph has loaded. */
 .art__in > svg{ transition:opacity .45s ease; }
-.slide.has3d .art__in > svg{ opacity:0; }          /* fades out only once the 3D has drawn */
-.stage3d{ transition:opacity .45s ease; }
-.stage3d.pending{ opacity:0; }
-/* a product photograph occupies the same slot as the model */
+.slide.has-rasm .art__in > svg{ opacity:0; }   /* fades out only once a picture is up */
+/* a product photograph fills the slot the drawing holds open */
 .art__photo{
   position:absolute; inset:0; z-index:2;
   width:100%; height:100%; object-fit:contain;

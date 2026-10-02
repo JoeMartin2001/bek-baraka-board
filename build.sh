@@ -25,7 +25,7 @@ cd "$(dirname "$0")"
   printf '%s\n' '</style>' '</head>' '<body>'
   cat src/body.html
   printf '%s\n' '<script>'
-  cat vendor/three.iife.js src/stage3d.js src/qr.js src/engine.js
+  cat src/slot.js src/qr.js src/engine.js
   printf '%s\n' '</script>' '</body>' '</html>'
 } > index.html
 echo "built index.html ($(wc -c < index.html) bytes)"

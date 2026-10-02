@@ -155,7 +155,7 @@ var CONFIG = {
   drawQR('qr-baraka',   'https://instagram.com/' + at(CONFIG.instagram_baraka));
   drawQR('qr-nextnout', 'https://t.me/' + at(CONFIG.telegram_nextnout));
 
-  Stage3D.setPhotos(CONFIG.rasm);
+  Slot.setPhotos(CONFIG.rasm);
 
   // --- background photos, when the shop supplies them --------------------
   Object.keys(CONFIG.fon || {}).forEach(function (key) {
@@ -252,7 +252,7 @@ var CONFIG = {
       A.classList.remove('on', 'is-out');
       B.classList.remove('is-in');
       clearAnims(A);
-      Stage3D.enter(B, DUR);   // the object arrives once the seam has passed
+      Slot.enter(B, DUR);      // the picture arrives once the seam has passed
       busy = false;
       schedule();
     }
@@ -363,8 +363,6 @@ var CONFIG = {
   addEventListener('mousemove', wake); wake();
 
   // --- start -------------------------------------------------------------
-  addEventListener('resize', function () { Stage3D.fit(); });
-
   function start() {
     if (START !== 0) {
       slides[0].classList.remove('on');
@@ -375,12 +373,7 @@ var CONFIG = {
     matchEdge(slides[START]);
     enter(slides[START]);
     schedule();
-    // WebGL boots after the first slide has painted, never in front of it,
-    // and then compiles everything it will ever need while the hero is up
-    setTimeout(function () {
-      if (Q.get('3d') !== '0') { Stage3D.init(); Stage3D.warm(); }
-      Stage3D.enter(slides[START], DUR);
-    }, 0);
+    Slot.enter(slides[START], DUR);
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(start);
   else start();

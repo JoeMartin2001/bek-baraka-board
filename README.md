@@ -17,7 +17,7 @@ shop is speaking is readable from across the room.
 |---|---|---|---|
 | 1 | Bosh sahifa | ikkalasi | ikkala brend, shiorlari, Instagram / Telegram / telefon |
 | 2 | Nasiya savdo | Bizda Baraka | 1 dona pasport va 50% bosh toʻlov, trade-in; qoʻl berishish surati |
-| 3 | Oʻyin va grafika | Next Nout | zamonaviy oʻyinlar, 3D render, 4K montaj; Asus TUF surati va oʻyin kompyuteri |
+| 3 | Oʻyin va grafika | Next Nout | zamonaviy oʻyinlar, 3D render, 4K montaj; Asus TUF surati |
 | 4 | Telefon va gadjetlar | Bizda Baraka | iPhone, Galaxy, iPad, Ray-Ban suratlari; telefon sotib olish |
 | 5 | Bogʻlanish | ikkalasi | ikkala raqam, ikkita QR, manzil, ish vaqti |
 
@@ -40,28 +40,26 @@ The fullscreen button rides with the cursor: it appears on any mouse movement
 and fades out with the pointer, so nothing sits on the board unattended.
 
 Butun ekran bitta faylda: internet, oʻrnatish yoki server kerak emas.
-Shriftlar, logotip va 3D kutubxona fayl ichida — internet oʻchsa ham ishlayveradi.
+Shriftlar va logotip fayl ichida — internet oʻchsa ham ishlayveradi.
 
 Everything is in one file — no internet, no install, no server. The fonts, the
-logo and the 3D library are embedded, so it keeps running if the connection drops.
+logo are embedded, so it keeps running if the connection drops.
 
-### 3D mahsulotlar / The 3D products
+### Mahsulot suratlari / The product pictures
 
 Mahsulot slaydlarida haqiqiy suratlar navbatma-navbat aylanadi: iPhone 18 Pro,
-Samsung Galaxy S25 Ultra, iPad Pro, Ray-Ban Meta va Asus TUF Gaming A15.
-Oʻyin kompyuteri — 3D model (uning surati hali yoʻq). Har safar
-slayd 2–3 tasini koʻrsatadi va keyingi aylanishda qolganlaridan davom etadi —
-nomi pastida yoziladi.
+Samsung Galaxy S25 Ultra, iPad Pro, Ray-Ban Meta va Asus TUF Gaming A15. Har
+safar slayd ikkitasini koʻrsatadi va keyingi aylanishda qolganlaridan davom
+etadi — nomi pastida yoziladi.
 
-Modellar fayl ichida yasaladi, tashqi fayl kerak emas. Agar kompyuterda WebGL
-ishlamasa, ekran oʻzi eski chizmalarga qaytadi va hech narsa buzilmaydi.
+Surat topilmasa yoki hali yuklanmagan boʻlsa, oʻsha joyda chizma turadi, ekran
+hech qachon boʻsh qolmaydi.
 
 Each product slide cycles photographs — iPhone 18 Pro, Galaxy S25 Ultra, iPad
-Pro, Ray-Ban Meta and the Asus TUF Gaming A15. The gaming tower is still a 3D
-model, since no photograph of one has been supplied. A slide shows two or three per visit
-and carries on from there next lap, captioned. The models are built in code, so there
-are no asset files. If the machine cannot run WebGL the board silently falls
-back to the engraved drawings; nothing breaks.
+Pro, Ray-Ban Meta and the Asus TUF Gaming A15. A slide shows two per visit and
+carries on from there next lap, captioned. While a picture is still loading, or
+if its file is missing, the engraved drawing holds the slot, so it is never
+empty.
 
 ---
 
@@ -121,12 +119,11 @@ dimmed, behind every slide. Preview any season with `?fasl=qish` in the URL.
 
 ### Sekin kompyuterda / On a slow shop PC
 
-Agar ekran sekin ishlasa, manzil oxiriga `?3d=0` qoʻshib koʻring — 3D oʻchadi,
-qolgani oʻzgarmaydi. Yordam bersa, menga ayting: 3D ni butunlay olib tashlaymiz.
+Ekranda 3D yoʻq — hammasi surat va CSS. Shuning uchun eski kompyuterlarda ham
+yengil ishlaydi va videokartaga bogʻliq emas.
 
-If the board feels heavy, open it with `?3d=0` on the end of the address. That
-turns the 3D off and changes nothing else, so it is a quick way to tell whether
-the graphics chip is the problem.
+There is no 3D on the board: it is photographs and CSS, so it does not lean on
+the graphics chip at all.
 
 Fon rasmlari allaqachon xiralashtirilgan holda saqlangan — brauzer ularni har
 kadrda qayta ishlamaydi. Yangi fon rasmi qoʻshsangiz, uni ham oldindan xira va
@@ -149,14 +146,13 @@ rasm: {
 }
 ```
 
-Rasmlar oʻsha slaydning 3D modellari bilan bitta navbatda yuradi — avval
-rasmlar, keyin modellar. Nasiya slaydidagi qoʻl berishish surati `fon.nasiya`
-da turadi (Pexels, Ekaterina Bolovtsova — bepul, tijorat uchun ham). Boshqa
-surat qoʻymoqchi boʻlsangiz, shu yoʻlni almashtiring. Rasm topilmasa ham ekran
-buzilmaydi — 3D model oʻrnida qoladi.
+Bir slaydga bir nechta surat qoʻysangiz, ular navbatma-navbat oʻtadi. Nasiya
+slaydidagi qoʻl berishish surati `fon.nasiya` da turadi (Pexels, Ekaterina
+Bolovtsova — bepul, tijorat uchun ham). Boshqa surat qoʻymoqchi boʻlsangiz, shu
+yoʻlni almashtiring. Surat topilmasa ham ekran buzilmaydi — chizma qoladi.
 
-Leave a slide empty and it keeps its 3D model. Several photos on one slide cycle
-through them, captioned, exactly like the models do.
+Several photos on one slide cycle through them, captioned. Leave a slide empty,
+or point it at a file that is not there, and its drawing stays instead.
 
 **Rasm qanday boʻlishi kerak / What the photo needs to be**
 
@@ -219,7 +215,6 @@ Bularni fayl manzilining oxiriga qoʻshing:
 | `?slide=4` | 4-slayddan boshlash |
 | `?still=1` | aylanmasin, bitta slayd tursin |
 | `?sek=6` | har bir slayd 6 soniya |
-| `?3d=0` | 3D modellarsiz (chizmalar bilan) — kompyuter yuklamasini solishtirish uchun |
 
 Masalan, faqat aloqa slaydini koʻrsatish uchun: `index.html?slide=4&still=1`
 
@@ -278,22 +273,24 @@ product itself turns on two unrelated periods so it never returns to the same
 pose. None of it costs the processor anything — it is all CSS animation, run on
 the graphics card rather than the main thread.
 
-Oʻlchangan natija (asosiy oqimdagi yuklama):
+Oʻlchangan natija — protsessor 4 barobar sekinlashtirilgan holda, toʻliq
+aylanma uchun (doʻkon kompyuteriga oʻxshatib):
 
-Measured main-thread cost, before and after moving the ambient motion off the
-per-frame path:
+Measured over the full loop with the CPU throttled four times over, to stand in
+for the shop machine:
 
 | | style recalc | jami / total |
 |---|---|---|
-| 3D siz slayd / slide without 3D | 21.0% → **0.8%** | 24.1% → **2.0%** |
-| toʻliq aylanma / full loop | 11.7% → **1.2%** | 56.7% → **24.0%** |
+| boshida / at the start | 18.9% | 29.2% |
+| foil tuzatilgandan keyin / after the foil fix | 8.7% | 24.0% |
+| suratlar tayyorlangach / with the photos baked | 6.9% | 18.7% |
+| 3D olib tashlangach / with the 3D removed | **5.6%** | **16.6%** |
 
-3D slaydlardagi qolgan yuklama videokartaga tegishli — sinov kompyuterida
-videokarta yoʻq edi, haqiqiy kompyuterda u ancha kam boʻladi.
+Fayl hajmi 1108 KB dan 365 KB ga tushdi, xotira 16 MB dan 2.5 MB ga.
 
-What remains on 3D slides is GPU work; the test machine had no GPU, so a real
-one will be lower again. The 3D itself renders at 30fps and only while a slide
-with a model is on screen.
+The file went from 1108 KB to 365 KB and the heap from about 16 MB to 2.5 MB.
+Nothing on the board runs per frame: the motion is CSS animation on the
+compositor, and a single timer changes the picture.
 
 ---
 
