@@ -60,7 +60,6 @@ src:url(data:font/woff2;base64,d09GMgABAAAAAJ0wABQAAAABWRgAAJy6AAEAAAAAAAAAAAAAA
 .board[data-fasl="yoz"]  { --amb:255,196,72;  --amb2:43,179,163;  --ground:#000000; --ground2:#12161A; }
 .board[data-fasl="kuz"]  { --amb:228,132,44;  --amb2:200,150,60;  --ground:#070302; --ground2:#181210; }
 .board[data-fasl="qish"] { --amb:160,200,240; --amb2:120,190,220; --ground:#020408; --ground2:#0c1218; }
-@property --sheen{ syntax:'<percentage>'; inherits:true; initial-value:130%; }
 
 /* One unit governs the whole composition: 1rem = 1% of a 16:9 fit.
    Everything downstream is in rem, so the board scales from 1280x720 to 4K
@@ -135,7 +134,7 @@ body.idle{ cursor:none; }
 .slide > .slide__photo{
   position:absolute; inset:0; z-index:0; pointer-events:none;
   background-position:center right; background-size:cover; background-repeat:no-repeat;
-  opacity:.15; filter:saturate(.4) contrast(.85) blur(4px);
+  opacity:.15;                      /* softened in the file, not at runtime */
   -webkit-mask-image:linear-gradient(90deg, transparent 30%, rgba(0,0,0,.45) 62%, #000 96%);
           mask-image:linear-gradient(90deg, transparent 30%, rgba(0,0,0,.45) 62%, #000 96%);
 }
@@ -153,7 +152,7 @@ body.idle{ cursor:none; }
 /* The nasiya photograph is dark already, so it is shown almost as it is:
    it fills the right of the slide and fades out under the words. */
 .s-nasiya > .slide__photo{
-  opacity:.94; filter:saturate(.85) contrast(1.02);
+  opacity:.94;                      /* graded in the file, not at runtime */
   background-size:76% auto; background-position:100% 30%;
   -webkit-mask-image:linear-gradient(90deg, transparent 40%, rgba(0,0,0,.55) 55%, #000 66%),
                      linear-gradient(180deg, transparent 3%, #000 20%, #000 72%, transparent 90%);
@@ -264,7 +263,7 @@ body.idle{ cursor:none; }
     #9C6A1B 0%, var(--gold) 28%, var(--gold-hi) 44%,
     #FFF6DC 50%, var(--gold-hi) 56%, var(--gold) 72%, #9C6A1B 100%);
   background-size:250% 100%;
-  background-position:var(--sheen) 50%;
+  background-position:130% 50%;
 }
 
 /* ===========================================================================
@@ -301,7 +300,7 @@ body.idle{ cursor:none; }
   font-size:2.95rem; line-height:1.15; letter-spacing:-.012em;
   white-space:nowrap;
   -webkit-background-clip:text; background-clip:text; color:transparent;
-  background-size:240% 100%; background-position:var(--sheen) 50%;
+  background-size:240% 100%; background-position:150% 50%;
 }
 .hook--gold{
   background-image:linear-gradient(100deg,
@@ -313,7 +312,7 @@ body.idle{ cursor:none; }
 }
 .hero__side--l .hook{ text-align:center; }
 .s-hero.anim .hook{ animation:hookFoil 2.6s cubic-bezier(.4,0,.24,1) 1.25s both; }
-@keyframes hookFoil{ from{ --sheen:150% } to{ --sheen:-50% } }
+@keyframes hookFoil{ from{ background-position:150% 50% } to{ background-position:-50% 50% } }
 
 /* where to reach each shop, straight under its own name */
 .reach{ display:flex; flex-wrap:wrap; gap:.9rem 2.4rem; margin-top:1.6rem; }
@@ -329,12 +328,13 @@ body.idle{ cursor:none; }
 .meta--hero span + span{ margin-left:2.8rem; padding-left:2.8rem; }
 
 .s-hero.anim .hero__rule{ animation:ruleIn 1.05s var(--ease-seam) .05s both; }
-.s-hero.anim .hero__side--l{ animation:comeL .95s var(--ease-out) .3s both, foil 2.9s cubic-bezier(.4,0,.24,1) .95s both; }
+.s-hero.anim .hero__side--l{ animation:comeL .95s var(--ease-out) .3s both; }
+.s-hero.anim .sheen{ animation:foil 2.9s cubic-bezier(.4,0,.24,1) .95s both; }
 .s-hero.anim .hero__side--r{ animation:comeR .95s var(--ease-out) .3s both; }
 @keyframes ruleIn{ from{ transform:scaleY(0); opacity:0 } to{ transform:scaleY(1); opacity:1 } }
 @keyframes comeL { from{ transform:translateX(-4.2rem); opacity:0 } to{ transform:none; opacity:1 } }
 @keyframes comeR { from{ transform:translateX( 4.2rem); opacity:0 } to{ transform:none; opacity:1 } }
-@keyframes foil  { from{ --sheen:140% } to{ --sheen:44% } }
+@keyframes foil  { from{ background-position:140% 50% } to{ background-position:44% 50% } }
 
 /* ===========================================================================
    SLIDES 2 & 3 — headline across the top, words left, one object right

@@ -119,6 +119,22 @@ qoʻshing.
 ice-blue); `'avto'` picks from the date. A path in `fasl_rasm` puts that photo,
 dimmed, behind every slide. Preview any season with `?fasl=qish` in the URL.
 
+### Sekin kompyuterda / On a slow shop PC
+
+Agar ekran sekin ishlasa, manzil oxiriga `?3d=0` qoʻshib koʻring — 3D oʻchadi,
+qolgani oʻzgarmaydi. Yordam bersa, menga ayting: 3D ni butunlay olib tashlaymiz.
+
+If the board feels heavy, open it with `?3d=0` on the end of the address. That
+turns the 3D off and changes nothing else, so it is a quick way to tell whether
+the graphics chip is the problem.
+
+Fon rasmlari allaqachon xiralashtirilgan holda saqlangan — brauzer ularni har
+kadrda qayta ishlamaydi. Yangi fon rasmi qoʻshsangiz, uni ham oldindan xira va
+yumshoq qilib tayyorlang.
+
+The background photographs ship already dimmed and softened, so the browser does
+no per-frame filtering. If you add your own, prepare it the same way.
+
 ### Mahsulot rasmlarini qoʻshish / Adding product photos
 
 Rasmni `assets/products/` papkasiga qoʻying, keyin `rasm` ichida yozing. Bir
