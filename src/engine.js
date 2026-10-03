@@ -207,27 +207,26 @@ var CONFIG = {
   }
 
   // --- entrances ---------------------------------------------------------
+  // Each element's place in the stagger, written once. The entrance itself is a
+  // CSS animation like every other movement on the board. It used to be built
+  // in script and cancelled and rebuilt on every visit, and Chrome would leave
+  // the last elements of a slide computing to visibility:hidden from the second
+  // lap on, with no rule saying so — the laptop and the contact details simply
+  // stopped being painted.
+  slides.forEach(function (slide) {
+    slide.querySelectorAll('[data-r]').forEach(function (n, i) {
+      n.style.setProperty('--i', i);
+    });
+  });
+
   function clearAnims(el) {
     el.getAnimations().forEach(function (a) { a.cancel(); });
-    el.querySelectorAll('[data-r]').forEach(function (n) {
-      n.getAnimations().forEach(function (a) { a.cancel(); });
-    });
   }
 
   function enter(el) {
     el.classList.remove('anim');
     void el.offsetWidth;                 // restart the slide's own keyframes
     el.classList.add('anim');
-    el.querySelectorAll('[data-r]').forEach(function (n, i) {
-      n.getAnimations().forEach(function (a) { a.cancel(); });
-      n.animate(
-        [{ opacity: 0, transform: 'translate3d(0,2.6rem,0)' },
-         { opacity: 1, transform: 'none' }],
-        { duration: R ? 260 : 820,
-          delay: R ? 0 : 200 + i * 70,
-          easing: 'cubic-bezier(.16,1,.3,1)',
-          fill: 'both' });
-    });
   }
 
   // --- the cut -----------------------------------------------------------
