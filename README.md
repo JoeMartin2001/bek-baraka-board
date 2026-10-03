@@ -133,7 +133,7 @@ Uch xil ishlatish mumkin, eng ishonchlisidan boshlab:
 3. **`index.html`.** Toʻliq ekran, faqat kompyuterda.
 
 Video bir aylanishga teng va boshi bilan oxiri tutashgan, shuning uchun uzluksiz
-takrorlanadi.
+takrorlanadi. 30 kadr/s, har kadr alohida — sakramaydi.
 
 Ekran matni yoki raqamlar oʻzgarsa, videoni qayta yozing:
 
@@ -144,8 +144,9 @@ Ekran matni yoki raqamlar oʻzgarsa, videoni qayta yozing:
 A television's browser is usually too old for this board and will freeze, so the
 board is also published as a film. The surest route is a USB stick played by the
 set's own player with repeat switched on; `tv.html` is a page that does nothing
-but loop the file. The film is exactly one lap and its end meets its beginning,
-so it repeats without a seam. Re-record it with `sh tools/make-video.sh` after
+but loop the file. The film is exactly one lap, measured from the board itself rather than
+calculated, and its end meets its beginning, so it repeats without a seam. It is
+filmed at about 57 frames a second and laid down at 30, so the motion is even. Re-record it with `sh tools/make-video.sh` after
 changing any wording.
 
 ### Sekin kompyuterda / On a slow shop PC

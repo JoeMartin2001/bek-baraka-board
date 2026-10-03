@@ -24,6 +24,12 @@
    the file wraps. */
 const fs = require('fs'), path = require('path');
 const PORT = 9333, URL_ = process.argv[2], RAW = process.argv[3], FPS = +(process.argv[4] || 30);
+// PNG costs Chrome so much to encode that the screencast could only deliver
+// about 23 frames a second, and half the frames in the finished file were
+// repeats. JPEG at full quality encodes far faster, keeps the timeline full,
+// and is indistinguishable once H.264 has been over it.
+const FMT = process.argv[5] || 'jpeg';
+const QUAL = +(process.argv[6] || 85);   // intermediate only; H.264 follows
 const CUT = 880;                       // the seam, as the engine sets it
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -39,7 +45,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const ws = new WebSocket(list.find(t => t.type === 'page').webSocketDebuggerUrl);
   await new Promise(r => ws.addEventListener('open', r));
 
-  let id = 0; const pend = new Map(); const shots = [];
+  let id = 0; const pend = new Map(); const shots = []; const writes = [];
   let collecting = false, n = 0;
   ws.addEventListener('close', () => { console.error('\nthe browser connection closed'); process.exit(1); });
   process.on('unhandledRejection', e => { console.error('\n' + ((e && e.stack) || e)); process.exit(1); });
@@ -61,8 +67,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     if (m.method === 'Page.screencastFrame') {
       send('Page.screencastFrameAck', { sessionId: m.params.sessionId }).catch(() => {});
       if (!collecting) return;
-      const file = path.join(RAW, `r${String(n++).padStart(6, '0')}.png`);
-      fs.writeFileSync(file, Buffer.from(m.params.data, 'base64'));
+      const file = path.join(RAW, `r${String(n++).padStart(6, '0')}.${FMT === 'jpeg' ? 'jpg' : 'png'}`);
+      // off the event loop: a synchronous write here delays the acknowledgement
+      // and the next frame with it, which showed up as stalls in the capture
+      writes.push(fs.promises.writeFile(file, Buffer.from(m.params.data, 'base64')));
       shots.push({ file: file, t: m.params.metadata.timestamp });
     }
   });
@@ -83,10 +91,19 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   const slides = await js("document.querySelectorAll('[data-slide-el]').length");
   const sek = await js("(function(){var q=new URLSearchParams(location.search);return parseFloat(q.get('sek'))||CONFIG.sekund})()");
-  const lap = (sek * 1000 + CUT) * slides;
-  console.log(`lap ${lap}ms over ${slides} slides, filming at ${FPS}fps`);
+  const nominal = (sek * 1000 + CUT) * slides;
+  console.log(`about ${nominal}ms over ${slides} slides, filming at ${FPS}fps`);
 
-  await send('Page.startScreencast', { format: 'png', maxWidth: 1920, maxHeight: 1080, everyNthFrame: 1 });
+  // The engine's timers drift a little, so the lap is never exactly the
+  // arithmetic figure. Have the page mark every slide change and measure the
+  // real one, or the wipe at the end gets clipped and the loop jumps.
+  await js(`(function(){window.__marks=[];var b=document.getElementById('board');
+    new MutationObserver(function(){window.__marks.push([Date.now()/1000,b.dataset.slide]);})
+      .observe(b,{attributes:true,attributeFilter:['data-slide']});})();''`);
+
+  await send('Page.startScreencast', Object.assign(
+    { format: FMT, maxWidth: 1920, maxHeight: 1080, everyNthFrame: 1 },
+    FMT === 'jpeg' ? { quality: QUAL } : {}));
 
   // the lap begins where the cut into the first slide ends
   let was = await js("document.getElementById('board').dataset.slide");
@@ -97,16 +114,25 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   }
   await sleep(CUT);
 
+  // Nothing talks to the browser while it is filming: asking it anything, even
+  // twice a second, was enough to cost a tenth of the frames.
   collecting = true;
   const t0 = Date.now() / 1000;
-  const until = lap + 400;                              // a little tail, trimmed later
-  for (let waited = 0; waited < until; waited += 500) {
+  for (let waited = 0; waited < nominal + 1500; waited += 500) {
     await sleep(500);
-    process.stdout.write(`\r  ${shots.length} frames, ${Math.round(waited / 1000)}s of ${Math.round(lap / 1000)}s`);
+    process.stdout.write(`\r  ${shots.length} frames, ${Math.round(waited / 1000)}s`);
   }
   collecting = false;
+
+  const marks = JSON.parse((await js("JSON.stringify(window.__marks)")) || '[]');
+  const back = marks.find(m => m[1] === '0' && m[0] > t0 + 1);
+  if (!back) throw new Error('the board never came back round to the first slide');
+  const lap = back[0] + CUT / 1000 - t0;
+  console.log(`\r  measured lap ${(lap * 1000).toFixed(0)}ms (arithmetic said ${nominal}ms)`);
   await send('Page.stopScreencast');
-  console.log(`\r  ${shots.length} frames over ${(lap / 1000).toFixed(1)}s`);
+  await Promise.all(writes);
+  console.log(`  ${shots.length} frames over ${lap.toFixed(1)}s ` +
+              `(${(shots.length / lap).toFixed(1)}/s captured, ${FPS}/s wanted)`);
 
   // ffmpeg reads this and resamples it to an even rate
   const kept = shots.filter(s => s.t >= t0);
@@ -118,8 +144,14 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   }
   lines.push(`file '${path.resolve(kept[kept.length - 1].file)}'`);
   fs.writeFileSync(path.join(RAW, 'list.txt'), lines.join('\n') + '\n');
-  fs.writeFileSync(path.join(RAW, 'lap.txt'), String(lap / 1000));
-  console.log(`  kept ${kept.length} frames from the lap`);
+  fs.writeFileSync(path.join(RAW, 'lap.txt'), String(lap));
+  // what the cadence was, since an uneven one is what a viewer sees as judder
+  const gaps = kept.slice(1).map((s, i) => (s.t - kept[i].t) * 1000).sort((a, b) => a - b);
+  const at = p => gaps[Math.min(gaps.length - 1, Math.floor(gaps.length * p))];
+  const slot = 1000 / FPS;
+  console.log(`  kept ${kept.length} frames; gap median ${at(.5).toFixed(1)}ms, ` +
+    `p99 ${at(.99).toFixed(1)}ms, max ${gaps[gaps.length - 1].toFixed(1)}ms; ` +
+    `${(gaps.filter(g => g > slot).length / gaps.length * 100).toFixed(1)}% longer than a ${FPS}fps slot`);
 
   ws.close(); process.exit(0);
 })();
