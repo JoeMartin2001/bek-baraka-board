@@ -1,0 +1,38 @@
+<!doctype html>
+<!--
+  Televizor uchun. Bu sahifa faqat videoni aylantiradi — hech qanday
+  animatsiya yoki hisob-kitob yoʻq, shuning uchun eski televizor brauzerida
+  ham ishlaydi. Agar bu ham ochilmasa, dist/ ichidagi MP4 ni flesh-kartaga
+  koʻchiring va televizorning oʻz pleyerida oching.
+
+  For the television. This page only loops the film: no animation and nothing
+  to compute, so an old set-top browser can handle it. If even this will not
+  open, copy the MP4 out of dist/ onto a USB stick and use the set's own player.
+-->
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bizda Baraka × Next Nout</title>
+<style>
+  html, body { margin:0; padding:0; height:100%; background:#000; overflow:hidden; }
+  video { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; background:#000; }
+</style>
+</head>
+<body>
+<video id="v" src="dist/bizda-baraka-next-nout.mp4"
+       autoplay loop muted playsinline webkit-playsinline preload="auto"></video>
+<script>
+  /* Some sets refuse to start on their own, and some stop at the end instead of
+     looping. Nudge both, and keep nudging: this runs unattended all day. */
+  var v = document.getElementById('v');
+  function play() { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+  v.addEventListener('ended', function () { v.currentTime = 0; play(); });
+  v.addEventListener('pause', play);
+  document.addEventListener('click', play);
+  document.addEventListener('keydown', play);
+  setInterval(function () { if (v.paused || v.ended) play(); }, 5000);
+  play();
+</script>
+</body>
+</html>

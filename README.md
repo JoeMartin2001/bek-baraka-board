@@ -117,6 +117,37 @@ qoʻshing.
 ice-blue); `'avto'` picks from the date. A path in `fasl_rasm` puts that photo,
 dimmed, behind every slide. Preview any season with `?fasl=qish` in the URL.
 
+### Televizorda / On a television
+
+Televizor brauzeri odatda juda eski — bu ekranni ochib ololmaydi yoki qotib
+qoladi. Shuning uchun ekran video qilib ham yozilgan:
+
+    dist/bizda-baraka-next-nout.mp4     1920x1080, 30 kadr/s, 39.4 soniya, ~9 MB
+
+Uch xil ishlatish mumkin, eng ishonchlisidan boshlab:
+
+1. **Flesh-karta.** MP4 ni fleshga koʻchiring, televizorga suqing, oʻz
+   pleyeridan oching va "takrorlash" (repeat) ni yoqing. Bu har qanday
+   televizorda ishlaydi.
+2. **`tv.html`.** Brauzerdan shu sahifani oching — u faqat videoni aylantiradi.
+3. **`index.html`.** Toʻliq ekran, faqat kompyuterda.
+
+Video bir aylanishga teng va boshi bilan oxiri tutashgan, shuning uchun uzluksiz
+takrorlanadi.
+
+Ekran matni yoki raqamlar oʻzgarsa, videoni qayta yozing:
+
+    sh tools/make-video.sh
+
+(node va ffmpeg kerak: `brew install ffmpeg`)
+
+A television's browser is usually too old for this board and will freeze, so the
+board is also published as a film. The surest route is a USB stick played by the
+set's own player with repeat switched on; `tv.html` is a page that does nothing
+but loop the file. The film is exactly one lap and its end meets its beginning,
+so it repeats without a seam. Re-record it with `sh tools/make-video.sh` after
+changing any wording.
+
 ### Sekin kompyuterda / On a slow shop PC
 
 Ekranda 3D yoʻq — hammasi surat va CSS. Shuning uchun eski kompyuterlarda ham
