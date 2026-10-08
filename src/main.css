@@ -442,6 +442,7 @@ body.idle{ cursor:none; }
   box-shadow:0 0 5rem rgba(232,178,60,.2);
 }
 .card__qr canvas{ display:block; width:9rem; height:9rem; image-rendering:pixelated; }
+/* the canvas is drawn at its displayed size, so nothing is resampled */
 
 .foot{
   display:flex; align-items:flex-start; width:100%;
@@ -517,8 +518,11 @@ body.idle{ cursor:none; }
   to  { transform:translate3d( .7rem,-.8rem,0) scale(1.05) }
 }
 
-.slide.on.anim .col,
-.slide.on.anim .cards{ animation:colMove 16s cubic-bezier(.25,.6,.35,1) both; }
+.slide.on.anim .col{ animation:colMove 16s cubic-bezier(.25,.6,.35,1) both; }
+/* The contact cards hold still. Drifting them moved the QR codes by a fraction
+   of a pixel every frame, and a pattern that fine resampled at fractional
+   offsets shimmers — a wave crawling through the code for as long as the slide
+   is up. A code meant to be scanned should not be moving anyway. */
 @keyframes colMove{
   from{ transform:translate3d(0, .85rem,0) }
   to  { transform:translate3d(0,-.7rem,0) }

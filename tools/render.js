@@ -30,6 +30,11 @@ const PORT = 9333, URL_ = process.argv[2], RAW = process.argv[3], FPS = +(proces
 // and is indistinguishable once H.264 has been over it.
 const FMT = process.argv[5] || 'jpeg';
 const QUAL = +(process.argv[6] || 85);   // intermediate only; H.264 follows
+// The board is filmed at a fraction of its speed and the timing is put back
+// when the frames are laid down. A busy machine then has several times the
+// budget per frame, so the film does not depend on the machine being idle —
+// which it rarely is.
+const SLOW = +(process.argv[7] || 2);
 const CUT = 880;                       // the seam, as the engine sets it
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -77,6 +82,17 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   await send('Page.enable'); await send('Runtime.enable');
   await send('Emulation.setDeviceMetricsOverride', { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false });
+
+  // Slow the two clocks the board runs on, together: its timers, which move the
+  // slides, and its animations, which move everything within one.
+  if (SLOW !== 1) {
+    await send('Page.addScriptToEvaluateOnNewDocument', { source:
+      '(function(k){var t=window.setTimeout,i=window.setInterval;' +
+      'window.setTimeout=function(f,d){return t(f,(d||0)*k)};' +
+      'window.setInterval=function(f,d){return i(f,(d||0)*k)};})(' + SLOW + ');' });
+    await send('Animation.enable');
+    await send('Animation.setPlaybackRate', { playbackRate: 1 / SLOW });
+  }
   await send('Page.navigate', { url: URL_ });
 
   for (let i = 0; i < 200; i++) {                       // wait for the board itself
@@ -112,13 +128,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     if (now === '0' && was !== '0') break;
     was = now; await sleep(20);
   }
-  await sleep(CUT);
+  await sleep(CUT * SLOW);
 
   // Nothing talks to the browser while it is filming: asking it anything, even
   // twice a second, was enough to cost a tenth of the frames.
   collecting = true;
   const t0 = Date.now() / 1000;
-  for (let waited = 0; waited < nominal + 1500; waited += 500) {
+  for (let waited = 0; waited < nominal * SLOW + 1500 * SLOW; waited += 500) {
     await sleep(500);
     process.stdout.write(`\r  ${shots.length} frames, ${Math.round(waited / 1000)}s`);
   }
@@ -127,26 +143,28 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const marks = JSON.parse((await js("JSON.stringify(window.__marks)")) || '[]');
   const back = marks.find(m => m[1] === '0' && m[0] > t0 + 1);
   if (!back) throw new Error('the board never came back round to the first slide');
-  const lap = back[0] + CUT / 1000 - t0;
-  console.log(`\r  measured lap ${(lap * 1000).toFixed(0)}ms (arithmetic said ${nominal}ms)`);
+  const lap = (back[0] + CUT * SLOW / 1000 - t0) / SLOW;   // back to the board's own time
+  console.log(`\r  measured lap ${(lap * 1000).toFixed(0)}ms (arithmetic said ${nominal}ms), ` +
+              `filmed at 1/${SLOW} speed`);
   await send('Page.stopScreencast');
   await Promise.all(writes);
-  console.log(`  ${shots.length} frames over ${lap.toFixed(1)}s ` +
-              `(${(shots.length / lap).toFixed(1)}/s captured, ${FPS}/s wanted)`);
+  console.log(`  ${shots.length} frames for ${lap.toFixed(1)}s of board time ` +
+              `(${(shots.length / lap).toFixed(1)}/s effective, ${FPS}/s wanted)`);
 
   // ffmpeg reads this and resamples it to an even rate
   const kept = shots.filter(s => s.t >= t0);
   if (kept.length < 2) throw new Error('the screencast produced nothing');
   const lines = [];
   for (let i = 0; i < kept.length; i++) {
-    const end = (i + 1 < kept.length) ? kept[i + 1].t : kept[i].t + 1 / FPS;
-    lines.push(`file '${path.resolve(kept[i].file)}'`, `duration ${(end - kept[i].t).toFixed(6)}`);
+    const end = (i + 1 < kept.length) ? kept[i + 1].t : kept[i].t + SLOW / FPS;
+    lines.push(`file '${path.resolve(kept[i].file)}'`,
+               `duration ${((end - kept[i].t) / SLOW).toFixed(6)}`);   // put the speed back
   }
   lines.push(`file '${path.resolve(kept[kept.length - 1].file)}'`);
   fs.writeFileSync(path.join(RAW, 'list.txt'), lines.join('\n') + '\n');
   fs.writeFileSync(path.join(RAW, 'lap.txt'), String(lap));
   // what the cadence was, since an uneven one is what a viewer sees as judder
-  const gaps = kept.slice(1).map((s, i) => (s.t - kept[i].t) * 1000).sort((a, b) => a - b);
+  const gaps = kept.slice(1).map((s, i) => (s.t - kept[i].t) * 1000 / SLOW).sort((a, b) => a - b);
   const at = p => gaps[Math.min(gaps.length - 1, Math.floor(gaps.length * p))];
   const slot = 1000 / FPS;
   console.log(`  kept ${kept.length} frames; gap median ${at(.5).toFixed(1)}ms, ` +

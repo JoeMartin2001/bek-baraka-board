@@ -470,6 +470,7 @@ body.idle{ cursor:none; }
   box-shadow:0 0 5rem rgba(232,178,60,.2);
 }
 .card__qr canvas{ display:block; width:9rem; height:9rem; image-rendering:pixelated; }
+/* the canvas is drawn at its displayed size, so nothing is resampled */
 
 .foot{
   display:flex; align-items:flex-start; width:100%;
@@ -545,8 +546,11 @@ body.idle{ cursor:none; }
   to  { transform:translate3d( .7rem,-.8rem,0) scale(1.05) }
 }
 
-.slide.on.anim .col,
-.slide.on.anim .cards{ animation:colMove 16s cubic-bezier(.25,.6,.35,1) both; }
+.slide.on.anim .col{ animation:colMove 16s cubic-bezier(.25,.6,.35,1) both; }
+/* The contact cards hold still. Drifting them moved the QR codes by a fraction
+   of a pixel every frame, and a pattern that fine resampled at fractional
+   offsets shimmers — a wave crawling through the code for as long as the slide
+   is up. A code meant to be scanned should not be moving anyway. */
 @keyframes colMove{
   from{ transform:translate3d(0, .85rem,0) }
   to  { transform:translate3d(0,-.7rem,0) }
@@ -1403,22 +1407,47 @@ var CONFIG = {
 
 
   // --- one QR per brand, generated from CONFIG --------------------------
+  // The code is drawn at exactly the size it is shown at, and every square is
+  // snapped to whole pixels. Drawing it at some other size and letting the
+  // browser scale it down made the squares uneven — a 231px code shown at
+  // 172.8px left some five pixels wide and others six, which is what a QR
+  // reader sees as a smudge and a person sees as a mess.
+  var QRS = [];
   function drawQR(canvasId, text) {
-    var m = QR.encode(text),
-        n = m.length, Q = 2,
-        S = Math.max(1, Math.floor(240 / (n + Q * 2))),
-        size = (n + Q * 2) * S,
-        c = document.getElementById(canvasId);
+    var c = document.getElementById(canvasId);
+    QRS.push([c, text]);
+    paintQR(c, text);
+  }
+  function paintQR(c, text) {
+    var m = QR.encode(text), n = m.length, Q = 2, N = n + Q * 2;
+    var dpr = window.devicePixelRatio || 1;
+    var want = parseFloat(c.dataset.box || '') || c.getBoundingClientRect().width || 180;
+    c.dataset.box = want;
+    // The box stays the size the layout asked for, so both codes match. Inside
+    // it each square is a whole number of pixels and whatever is left over
+    // becomes margin, which a reader wants around a code anyway.
+    var size = Math.round(want * dpr);
+    var S = Math.max(1, Math.floor(size / N));
+    var pad = Math.round((size - S * N) / 2);
     c.width = c.height = size;
+    c.style.width = c.style.height = (size / dpr) + 'px';
     var g = c.getContext('2d');
     g.fillStyle = '#ffffff'; g.fillRect(0, 0, size, size);
     g.fillStyle = '#0A0806';
     for (var y = 0; y < n; y++)
       for (var x = 0; x < n; x++)
-        if (m[y][x]) g.fillRect((x + Q) * S, (y + Q) * S, S, S);
+        if (m[y][x]) g.fillRect(pad + (x + Q) * S, pad + (y + Q) * S, S, S);
   }
   drawQR('qr-baraka',   'https://instagram.com/' + at(CONFIG.instagram_baraka));
   drawQR('qr-nextnout', 'https://t.me/' + at(CONFIG.telegram_nextnout));
+
+  // the board is sized in rem off the viewport, so a resize changes how big the
+  // codes are shown and they have to be drawn again at the new size
+  var reQR;
+  addEventListener('resize', function () {
+    clearTimeout(reQR);
+    reQR = setTimeout(function () { QRS.forEach(function (q) { paintQR(q[0], q[1]); }); }, 200);
+  });
 
   Slot.setPhotos(CONFIG.rasm);
 
