@@ -319,12 +319,18 @@ var CONFIG = {
   // the compositor, the rail fills itself, and the only JS left is a timer
   // that fires once per slide. Measured, that took main-thread style recalc
   // from a fifth of wall time to nothing.
+  // The rail is the only steady movement on the board, so it is what the eye
+  // uses to judge whether the picture is running smoothly. It is driven across
+  // the whole cycle — the slide's time on screen and the cut that follows it —
+  // because filling only over the first part left it standing still for the
+  // length of every cut, which reads as the screen stalling rather than as a
+  // slide changing.
   function bar(run) {
     pbar.style.animation = 'none';
     pbar.style.setProperty('--from', (cur / N).toFixed(4));
     pbar.style.setProperty('--to', ((cur + 1) / N).toFixed(4));
     void pbar.offsetWidth;                       // restart the fill
-    if (run) pbar.style.animation = 'barFill ' + (DUR / 1000) + 's linear forwards';
+    if (run) pbar.style.animation = 'barFill ' + ((DUR + (R ? 260 : D)) / 1000) + 's linear forwards';
   }
 
   function schedule() {

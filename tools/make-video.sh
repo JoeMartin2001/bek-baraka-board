@@ -1,7 +1,11 @@
 #!/bin/sh
 # Films the board and writes a looping MP4 for a television.
 #
-#   sh tools/make-video.sh [outfile] [fps]
+#   sh tools/make-video.sh [outfile] [fps] [slow]
+#
+# `slow` is how far the board is slowed while filming, with the timing put back
+# afterwards. 2 is enough on a quiet machine; raise it to 3 or 4 when the
+# machine is busy and frames are being missed.
 #
 # Needs node and ffmpeg. Serves the folder, drives a headless Chrome, films one
 # lap, then encodes it for the widest set of televisions.
@@ -23,6 +27,7 @@ cd "$(dirname "$0")/.."
 
 OUT=${1:-dist/bizda-baraka-next-nout.mp4}
 FPS=${2:-30}
+SLOW=${3:-2}
 WORK=$(mktemp -d)
 PORT=8799
 trap 'kill $SRV $BROWSER 2>/dev/null; rm -rf "$WORK"' EXIT
@@ -41,7 +46,7 @@ BROWSER=$!
 
 i=0; while [ $i -lt 60 ] && ! curl -s -m 1 http://127.0.0.1:9333/json/list >/dev/null; do sleep 0.5; i=$((i+1)); done
 
-node tools/render.js "http://127.0.0.1:$PORT/index.html" "$WORK/raw" "$FPS"
+node tools/render.js "http://127.0.0.1:$PORT/index.html" "$WORK/raw" "$FPS" jpeg 85 "$SLOW"
 LAP=$(cat "$WORK/raw/lap.txt")
 
 mkdir -p "$(dirname "$OUT")"
