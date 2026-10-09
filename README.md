@@ -124,6 +124,33 @@ qoladi. Shuning uchun ekran video qilib ham yozilgan:
 
     dist/bizda-baraka-next-nout.mp4     1920x1080, 30 kadr/s, 39.4 soniya, ~9 MB
 
+Ikki fayl bor:
+
+| Fayl | Uzunligi | Ovoz |
+|---|---|---|
+| `dist/bizda-baraka-next-nout.mp4` | 39.5 s | ovozsiz |
+| `dist/bizda-baraka-next-nout-musiqali.mp4` | 5 min 55 s (9 aylanish) | musiqa bilan |
+
+Musiqali fayl katta (~160 MB), shuning uchun repozitoriyda saqlanmaydi.
+Oʻzingiz yasashingiz mumkin:
+
+    sh tools/add-music.sh <musiqa.mp3>
+
+Nega 9 aylanish? Agar 40 soniyalik videoga 40 soniyalik musiqa qoʻyilsa, bir
+soatda bir xil musiqa 90 marta takrorlanadi — sotuvchi bundan charchaydi.
+Toʻqqiz aylanish bilan musiqa har 6 daqiqada bir marta qaytadi. Rasm esa har
+aylanishda bir xil, shuning uchun baribir uzluksiz.
+
+Musiqa: "Chill Lounge" — AtlasAudio, Pixabay. Tijorat uchun bepul, muallif
+koʻrsatish shart emas. Ovoz darajasi -20 LUFS — gaplashish uchun yetarli past.
+
+Two files: a silent 39.5-second lap, and a 5 minute 55 second version with
+music, which is nine identical laps so the track runs its whole length before
+repeating. The musical one is about 160MB and is not kept in the repository;
+rebuild it with `sh tools/add-music.sh <track.mp3>`. The music is "Chill Lounge"
+by AtlasAudio from Pixabay, free for commercial use with no credit required,
+laid in at -20 LUFS so it sits under conversation.
+
 Uch xil ishlatish mumkin, eng ishonchlisidan boshlab:
 
 1. **Flesh-karta.** MP4 ni fleshga koʻchiring, televizorga suqing, oʻz
