@@ -12,6 +12,10 @@
 #
 # The music is faded in and out at the ends so the joint is a dip rather than a
 # click, and set to about -20 LUFS: present, and quiet enough to talk over.
+#
+# Give it a bed that is already cut to length and levelled (an .m4a or .aac out
+# of an earlier run) and it is used as it is, so rebuilding the picture does not
+# mean rebuilding the sound.
 set -e
 cd "$(dirname "$0")/.."
 
@@ -35,26 +39,42 @@ LAPS=$(python3 -c "print(max(1, int($TRACK // $LAP)))")
 TOTAL=$(python3 -c "print(round($LAPS * $LAP, 6))")
 OUTFADE=$(python3 -c "print(round($TOTAL - $FADE_OUT, 6))")
 
-# the track's own loudness, so it can be set to the target with one flat gain
-# rather than a compressor that would breathe on a bed this steady
-IN_I=$(ffmpeg -hide_banner -i "$MUSIC" -af loudnorm=print_format=summary -f null - 2>&1 |
-       awk '/Input Integrated/ {print $3}')
-GAIN=$(python3 -c "print(round($TARGET - ($IN_I), 2))")
+# a bed already cut to the film's length is taken as finished: levelled, faded
+# and trimmed by an earlier run, so it is copied in rather than worked over
+READY=no
+case "$MUSIC" in *.m4a|*.aac|*.M4A|*.AAC) READY=yes ;; esac
+python3 -c "import sys; sys.exit(0 if abs($TRACK - $LAPS * $LAP) < 1 else 1)" || READY=no
 
-echo "film $LAP s x $LAPS laps = $TOTAL s; track $TRACK s at $IN_I LUFS, gain ${GAIN} dB"
+if [ "$READY" = yes ]; then
+  echo "film $LAP s x $LAPS laps = $TOTAL s; bed $TRACK s, already levelled — copying it in"
+else
+  # the track's own loudness, so it can be set to the target with one flat gain
+  # rather than a compressor that would breathe on a bed this steady
+  IN_I=$(ffmpeg -hide_banner -i "$MUSIC" -af loudnorm=print_format=summary -f null - 2>&1 |
+         awk '/Input Integrated/ {print $3}')
+  GAIN=$(python3 -c "print(round($TARGET - ($IN_I), 2))")
+  echo "film $LAP s x $LAPS laps = $TOTAL s; track $TRACK s at $IN_I LUFS, gain ${GAIN} dB"
+fi
 
 LIST=$(mktemp)
 i=0; while [ $i -lt "$LAPS" ]; do echo "file '$PWD/$FILM'" >> "$LIST"; i=$((i+1)); done
 trap 'rm -f "$LIST"' EXIT
 
 mkdir -p "$(dirname "$OUT")"
-ffmpeg -y -loglevel error -stats \
-  -f concat -safe 0 -i "$LIST" \
-  -i "$MUSIC" \
-  -filter_complex "[1:a]atrim=0:$TOTAL,asetpts=N/SR/TB,volume=${GAIN}dB,\
+if [ "$READY" = yes ]; then
+  ffmpeg -y -loglevel error -stats \
+    -f concat -safe 0 -i "$LIST" -i "$MUSIC" \
+    -map 0:v -map 1:a -c:v copy -c:a copy \
+    -movflags +faststart -t "$TOTAL" "$OUT"
+else
+  ffmpeg -y -loglevel error -stats \
+    -f concat -safe 0 -i "$LIST" \
+    -i "$MUSIC" \
+    -filter_complex "[1:a]atrim=0:$TOTAL,asetpts=N/SR/TB,volume=${GAIN}dB,\
 afade=t=in:st=0:d=$FADE_IN,afade=t=out:st=$OUTFADE:d=$FADE_OUT[a]" \
-  -map 0:v -map "[a]" -c:v copy -c:a aac -b:a 192k -ar 48000 \
-  -movflags +faststart -t "$TOTAL" "$OUT"
+    -map 0:v -map "[a]" -c:v copy -c:a aac -b:a 192k -ar 48000 \
+    -movflags +faststart -t "$TOTAL" "$OUT"
+fi
 
 echo
 ffprobe -v error -show_entries format=duration,size -show_entries stream=codec_name \

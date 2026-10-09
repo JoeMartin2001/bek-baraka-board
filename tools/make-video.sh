@@ -4,8 +4,20 @@
 #   sh tools/make-video.sh [outfile] [fps]
 #
 # Needs node and ffmpeg. Serves the folder, drives a headless Chrome, films one
-# lap, then encodes it for the widest set of televisions: H.264 High, yuv420p,
-# a silent AAC track (some sets refuse a file with no audio) and faststart.
+# lap, then encodes it for the widest set of televisions.
+#
+# The encoding settings are chosen for a cheap hardware decoder, not for the
+# smallest file:
+#   * the bitrate is capped and given a buffer, so it cannot spike past what a
+#     set-top decoder can swallow — unconstrained quality-based encoding is the
+#     usual reason a file plays on a computer and stutters on a television;
+#   * B-frames are not used as references and weighted prediction is kept
+#     simple, both of which older decoders handle badly;
+#   * the frames come off the screencast full-range, so they are converted to
+#     the limited range a television expects and tagged BT.709. Left alone they
+#     were tagged full-range PAL, which makes blacks crush and whites blow;
+#   * a silent AAC track, because some sets refuse a file with no audio;
+#   * faststart, so playback can begin before the whole file is read.
 set -e
 cd "$(dirname "$0")/.."
 
@@ -37,9 +49,11 @@ ffmpeg -y -loglevel error -stats \
   -f concat -safe 0 -i "$WORK/raw/list.txt" \
   -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=48000 \
   -t "$LAP" \
-  -vf "fps=$FPS,format=yuv420p" \
-  -c:v libx264 -profile:v high -level 4.0 -preset slow -crf 19 \
-  -x264-params "keyint=$((FPS*2)):min-keyint=$FPS:scenecut=0" \
+  -vf "fps=$FPS,scale=in_range=full:out_range=tv,format=yuv420p" \
+  -color_range tv -colorspace bt709 -color_primaries bt709 -color_trc bt709 \
+  -c:v libx264 -profile:v high -level 4.0 -preset slow -crf 20 \
+  -maxrate 6M -bufsize 12M \
+  -x264-params "keyint=$((FPS*2)):min-keyint=$FPS:scenecut=0:ref=3:bframes=2:b-pyramid=none:weightp=1" \
   -c:a aac -b:a 64k -shortest -movflags +faststart \
   "$OUT"
 
